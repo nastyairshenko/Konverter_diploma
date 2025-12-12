@@ -1,0 +1,32 @@
+{
+  "ns": "http://example.org/ontology#",
+  "classes": {
+    "Recommendation": "Рекомендация",
+    "Disease": "Заболевание",
+    "MethodsGroup": "ГруппаМетодовЛечения",
+    "CriteriaGroup": "ГруппаКритериев",
+    "CriteriaSubgroup": "ПодгруппаКритериев",
+    "CriterionPatient": "КритерийПациент",
+    "CriterionSymptom": "КритерийСимптом",
+    "CriterionGoal": "КритерийЦель",
+    "Method": "МетодЛечения"
+  },
+  "properties": {
+    "hasMethodsGroup": "имеетГруппуМетодовЛечения",
+    "hasCriteriaGroup": "имеетГруппуКритериев",
+    "hasCriteriaSubgroup": "имеетПодгруппуКритериев",
+    "hasMethodSubgroup": "имеетПодгруппуМетодовЛечения",
+    "hasMethod": "имеетМетодЛечения",
+    "hasCriterion": "имеетКритерий",
+    "selectionRule": "правилоВыбора",
+    "appliesTo": "применимоПри",
+    "mkb": "имеетКодМКБ",
+    "udd": "имеетУДД",
+    "uur": "имеетУУР",
+    "page": "номерСтраницы",
+    "source": "источник",
+    "originalText": "оригинальныйТекст",
+    "label": "имя",
+    "value": "значение"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "diagnosis": "диагноз",
+  "recommended": "рекомендуется",
+  "criterion_patient": "критерий пациент",
+  "criterion_symptom": "критерий симптом",
+  "criterion_time": "критерий время",
+  "criterion_capability": "критерий возможность",
+  "criterion_goal": "для",
+  "value": "значение",
+  "and": "связь И",
+  "or": "связь ИЛИ",
+  "place": "место проведения",
+  "next_step": "следующий шаг",
+
+  "not_suffix": ", NOT"
+}
