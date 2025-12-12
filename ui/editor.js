@@ -1,10 +1,61 @@
 // ======= настройки подключения к API =======
 const API_BASE = "http://127.0.0.1:8000";
 
-// ======= вспомогательная логика подсветки текста =======
+// ======= DOM =======
 const recTextEl = document.getElementById("rec-text");
 
+// ======= подсветка текста =======
+function escapeHtml(str) {
+  return (str || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+function escapeRegex(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+function highlightRecText(node) {
+  const text = recTextEl ? (recTextEl.innerText || "") : "";
+  if (!recTextEl) return;
 
+  if (!node || (!node.label && !node.value && !node.note) || !text.trim()) {
+    recTextEl.innerHTML = escapeHtml(text);
+    return;
+  }
+
+  const terms = [];
+  if (node.label && node.label.trim().length > 1) terms.push(node.label.trim());
+  if (node.value && String(node.value).trim().length > 1) terms.push(String(node.value).trim());
+  if (node.note && String(node.note).trim().length > 1) terms.push(String(node.note).trim());
+
+  if (!terms.length) {
+    recTextEl.innerHTML = escapeHtml(text);
+    return;
+  }
+
+  const pattern = "(" + terms.map(escapeRegex).join("|") + ")";
+  const re = new RegExp(pattern, "gi");
+
+  let lastIndex = 0;
+  let result = "";
+  let m;
+  while ((m = re.exec(text)) !== null) {
+    result += escapeHtml(text.slice(lastIndex, m.index));
+    result += '<span class="highlight">' + escapeHtml(m[0]) + "</span>";
+    lastIndex = re.lastIndex;
+  }
+  result += escapeHtml(text.slice(lastIndex));
+  recTextEl.innerHTML = result;
+}
+
+// ======= данные графа =======
+const nodes = [];
+const links = [];
+let rootNodeId = null;
+
+// ======= предикаты: автоподбор =======
 const PRED_ROLE_OPTIONS = [
   "критерий пациент",
   "критерий симптом",
@@ -13,7 +64,7 @@ const PRED_ROLE_OPTIONS = [
   "для",
   "значение",
   "уточнение",
-  "" // пусто (если нужно просто операнд без подписи)
+  "" // пусто (операнд логики)
 ];
 
 function normalizeLogicLabel(lbl) {
@@ -24,7 +75,6 @@ function normalizeLogicLabel(lbl) {
   return lbl || "";
 }
 
-// мини-меню через prompt (быстро, без HTML)
 function pickPredicateFromList(defaultPred = "") {
   const items = PRED_ROLE_OPTIONS
     .map((p, i) => `${i + 1}) ${p === "" ? "(пусто)" : p}`)
@@ -44,137 +94,66 @@ function pickPredicateFromList(defaultPred = "") {
   if (!Number.isNaN(num) && num >= 1 && num <= PRED_ROLE_OPTIONS.length) {
     return PRED_ROLE_OPTIONS[num - 1];
   }
-
-  // пользователь ввёл свой текст
   return t;
 }
 
 function autoPredicateForEdge(sourceNode, targetNode) {
-  // 1) root -> method => рекомендуется
-  if (sourceNode.type === "root" && targetNode.type === "method") {
-    return "рекомендуется";
-  }
+  // root -> method => рекомендуется
+  if (sourceNode.type === "root" && targetNode.type === "method") return "рекомендуется";
 
-  // 2) root -> logic (группа методов) => рекомендуется (тоже ок)
-  if (sourceNode.type === "root" && targetNode.type === "logic") {
-    return "рекомендуется";
-  }
+  // root -> logic => рекомендуется (группа методов)
+  if (sourceNode.type === "root" && targetNode.type === "logic") return "рекомендуется";
 
-  // 3) method -> logic (группа критериев/уточнений/...) => используется
-  if (sourceNode.type === "method" && targetNode.type === "logic") {
-    return "используется";
-  }
+  // method -> logic => используется (привязка условий/групп)
+  if (sourceNode.type === "method" && targetNode.type === "logic") return "используется";
 
-  // 4) logic -> criteria => выбрать роль/для/значение/уточнение
+  // logic -> criteria => роль/для/значение/уточнение (выбор)
   if (sourceNode.type === "logic" && targetNode.type === "criteria") {
-    return pickPredicateFromList("критерий пациент"); // дефолт
+    return pickPredicateFromList("критерий пациент");
   }
 
-  // 5) logic -> logic => операнд группы (пусто)
-  if (sourceNode.type === "logic" && targetNode.type === "logic") {
-    return "";
-  }
+  // logic -> logic => операнд (пусто)
+  if (sourceNode.type === "logic" && targetNode.type === "logic") return "";
 
-  // 6) method -> criteria (если вдруг рисуют напрямую) => спросить
+  // method -> criteria (если рисуют напрямую) => выбор
   if (sourceNode.type === "method" && targetNode.type === "criteria") {
     return pickPredicateFromList("для");
   }
 
-  // 7) criteria -> criteria (например значение/уточнение/и т.д.)
+  // criteria -> criteria => выбор
   if (sourceNode.type === "criteria" && targetNode.type === "criteria") {
     return pickPredicateFromList("");
   }
 
-  // по умолчанию — пусто
   return "";
 }
 
-
-function escapeHtml(str) {
-  return (str || "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-}
-
-function escapeRegex(str) {
-  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-function highlightRecText(node) {
-  const text = recTextEl.innerText || "";
-  if (!node || (!node.label && !node.value) || !text.trim()) {
-    recTextEl.innerHTML = escapeHtml(text);
-    return;
-  }
-
-  const terms = [];
-  if (node.label && node.label.trim().length > 1) terms.push(node.label.trim());
-  if (node.value && String(node.value).trim().length > 1)
-    terms.push(String(node.value).trim());
-
-  if (!terms.length) {
-    recTextEl.innerHTML = escapeHtml(text);
-    return;
-  }
-
-  const pattern = "(" + terms.map(escapeRegex).join("|") + ")";
-  const re = new RegExp(pattern, "gi");
-
-  let lastIndex = 0;
-  let result = "";
-  let m;
-  while ((m = re.exec(text)) !== null) {
-    result += escapeHtml(text.slice(lastIndex, m.index));
-    result += '<span class="highlight">' + escapeHtml(m[0]) + "</span>";
-    lastIndex = re.lastIndex;
-  }
-  result += escapeHtml(text.slice(lastIndex));
-
-  recTextEl.innerHTML = result;
-}
-
-// ======= данные графа =======
-const nodes = [];
-const links = [];
-let rootNodeId = null;
-
-function ruleSymbol(rule) {
-  if (!rule) return "";
-  if (rule === "ANY") return "ИЛИ";
-  if (rule === "ALL") return "И";
-  if (rule === "NOT") return "НЕТ";
-  return rule;
-}
-
-function mapCriteriaEdgeLabel(rawType) {
-  // PN часто хранит "КритерийПациент" и т.п.
-  const t = (rawType || "").trim();
-  if (!t) return "";
-  if (t.toLowerCase().includes("пациент")) return "критерий пациент";
-  if (t.toLowerCase().includes("симптом")) return "критерий симптом";
-  if (t.toLowerCase().includes("время")) return "критерий время";
-  if (t.toLowerCase().includes("возмож")) return "критерий возможность";
-  return t;
-}
-
-// размеры как в konverter (методы шире)
-function defaultNodeSize(type, hasValue) {
+// ======= отображение =======
+function defaultNodeSize(type, hasValueOrNote) {
   if (type === "logic") return { w: 42, h: 42 };
   if (type === "root") return { w: 120, h: 40 };
   if (type === "method") return { w: 360, h: 42 };
-  // criteria
-  return { w: hasValue ? 260 : 220, h: hasValue ? 54 : 42 };
+  return { w: hasValueOrNote ? 280 : 220, h: hasValueOrNote ? 56 : 42 };
 }
-
 function ensureNodeSize(n) {
   if (!n.w || !n.h) {
-    const s = defaultNodeSize(n.type, n.type === "criteria" && !!n.value);
+    const hv = n.type === "criteria" && (!!n.value || !!n.note);
+    const s = defaultNodeSize(n.type, hv);
     n.w = s.w;
     n.h = s.h;
   }
+}
+
+function nodeTypeClass(type) {
+  if (type === "criteria") return "node-type-criteria";
+  if (type === "method") return "node-type-method";
+  if (type === "logic") return "node-type-logic";
+  if (type === "root") return "node-type-root";
+  return "";
+}
+
+function rebuildIdMap() {
+  return new Map(nodes.map(n => [n.id, n]));
 }
 
 // ======= undo =======
@@ -192,7 +171,6 @@ function pushHistory() {
   });
   if (historyStack.length > 50) historyStack.shift();
 }
-
 function undo() {
   if (!historyStack.length) return;
   const st = historyStack.pop();
@@ -200,7 +178,7 @@ function undo() {
   links.length = 0;
   rootNodeId = st.rootNodeId || null;
   st.nodes.forEach(n => nodes.push({ ...n }));
-  const idMap = new Map(nodes.map(n => [n.id, n]));
+  const idMap = rebuildIdMap();
   st.links.forEach(l => {
     const s = idMap.get(l.source);
     const t = idMap.get(l.target);
@@ -221,8 +199,6 @@ function undo() {
 
 // ======= SVG / D3 =======
 const svg = d3.select("#svg");
-const width = svg.node().clientWidth;
-const height = svg.node().clientHeight;
 
 const defs = svg.append("defs");
 const gridSize = 40;
@@ -234,11 +210,7 @@ const pattern = defs
   .attr("width", gridSize)
   .attr("height", gridSize);
 
-pattern
-  .append("rect")
-  .attr("width", gridSize)
-  .attr("height", gridSize)
-  .attr("fill", "#fafafa");
+pattern.append("rect").attr("width", gridSize).attr("height", gridSize).attr("fill", "#fafafa");
 pattern
   .append("path")
   .attr("d", `M ${gridSize} 0 L 0 0 0 ${gridSize}`)
@@ -246,13 +218,7 @@ pattern
   .attr("stroke", "#e0e0e0")
   .attr("stroke-width", 1);
 
-svg
-  .append("rect")
-  .attr("class", "pan-bg")
-  .attr("x", -5000)
-  .attr("y", -5000)
-  .attr("width", 10000)
-  .attr("height", 10000);
+svg.append("rect").attr("class", "pan-bg").attr("x", -5000).attr("y", -5000).attr("width", 10000).attr("height", 10000);
 
 defs
   .append("marker")
@@ -279,30 +245,21 @@ let edgeStartNode = null;
 
 const edgeModeBtn = document.getElementById("edge-mode-btn");
 function updateEdgeModeButton() {
+  if (!edgeModeBtn) return;
   edgeModeBtn.textContent = edgeMode ? "Режим стрелки: ВКЛ" : "Режим стрелки: ВЫКЛ";
   edgeModeBtn.style.background = edgeMode ? "#e3f2fd" : "#fff";
 }
-edgeModeBtn.addEventListener("click", () => {
-  edgeMode = !edgeMode;
-  edgeStartNode = null;
-  selectedNode = null;
-  selectedEdge = null;
-  redrawSelection();
-  updateEdgeModeButton();
-});
+if (edgeModeBtn) {
+  edgeModeBtn.addEventListener("click", () => {
+    edgeMode = !edgeMode;
+    edgeStartNode = null;
+    selectedNode = null;
+    selectedEdge = null;
+    redrawSelection();
+    updateEdgeModeButton();
+  });
+}
 updateEdgeModeButton();
-
-function nodeTypeClass(type) {
-  if (type === "criteria") return "node-type-criteria";
-  if (type === "method") return "node-type-method";
-  if (type === "logic") return "node-type-logic";
-  if (type === "root") return "node-type-root";
-  return "";
-}
-
-function rebuildIdMap() {
-  return new Map(nodes.map(n => [n.id, n]));
-}
 
 function computeVisible() {
   const idMap = rebuildIdMap();
@@ -330,9 +287,7 @@ function computeVisible() {
 
   const visibleNodes = nodes.filter(n => !hidden.has(n.id));
   const visIds = new Set(visibleNodes.map(n => n.id));
-  const visibleLinks = links.filter(
-    l => visIds.has(l.source.id) && visIds.has(l.target.id)
-  );
+  const visibleLinks = links.filter(l => visIds.has(l.source.id) && visIds.has(l.target.id));
   return { visibleNodes, visibleLinks };
 }
 
@@ -350,10 +305,15 @@ function redrawLinks() {
     .attr("y", d => (d.source.y + d.target.y) / 2 - 4);
 }
 
+function redrawSelection() {
+  nodeGroup.selectAll(".node").classed("selected", d => d === selectedNode);
+  linkGroup.selectAll(".link").classed("selected-edge", d => d === selectedEdge);
+}
+
 function updateGraph() {
   const { visibleNodes, visibleLinks } = computeVisible();
 
-  // links
+  // LINKS
   const link = linkGroup
     .selectAll("line")
     .data(visibleLinks, d => d.source.id + "->" + d.target.id);
@@ -384,7 +344,7 @@ function updateGraph() {
   linkEnter.merge(link);
   redrawLinks();
 
-  // link labels
+  // LINK LABELS
   const linkLabels = linkLabelGroup
     .selectAll("text")
     .data(visibleLinks, d => d.source.id + "->" + d.target.id);
@@ -419,11 +379,8 @@ function updateGraph() {
     .attr("x", d => (d.source.x + d.target.x) / 2)
     .attr("y", d => (d.source.y + d.target.y) / 2 - 4);
 
-  // nodes
-  const node = nodeGroup
-    .selectAll(".node")
-    .data(visibleNodes, d => d.id);
-
+  // NODES
+  const node = nodeGroup.selectAll(".node").data(visibleNodes, d => d.id);
   node.exit().remove();
 
   const nodeEnter = node
@@ -439,18 +396,26 @@ function updateGraph() {
     )
     .on("click", (event, d) => {
       event.stopPropagation();
+
       if (edgeMode) {
         if (!edgeStartNode) {
           edgeStartNode = d;
           selectedNode = d;
           redrawSelection();
         } else if (edgeStartNode !== d) {
+          const pred = autoPredicateForEdge(edgeStartNode, d);
+          if (pred === null) {
+            edgeStartNode = null;
+            selectedNode = null;
+            redrawSelection();
+            return;
+          }
           pushHistory();
           links.push({
             source: edgeStartNode,
             target: d,
-            predicate: "",
-            label: ""
+            predicate: (pred || "").trim(),
+            label: (pred || "").trim()
           });
           edgeStartNode = null;
           selectedNode = null;
@@ -470,22 +435,28 @@ function updateGraph() {
     })
     .on("dblclick", (event, d) => {
       event.stopPropagation();
+
       let lbl = prompt("Подпись вершины:", d.label || "");
       if (lbl === null) return;
       lbl = lbl.trim();
+
       pushHistory();
       d.label = lbl || d.label;
+      if (d.type === "logic") d.label = normalizeLogicLabel(d.label);
 
       if (d.type === "criteria") {
-        let val = prompt(
-          "Значение критерия (можно оставить пустым):",
-          d.value || ""
-        );
+        let val = prompt("Значение критерия (опционально):", d.value || "");
         if (val !== null) {
           val = val.trim();
           d.value = val || null;
         }
+        let nt = prompt("Уточнение (опционально):", d.note || "");
+        if (nt !== null) {
+          nt = nt.trim();
+          d.note = nt || null;
+        }
       }
+
       updateGraph();
     });
 
@@ -519,7 +490,7 @@ function updateGraph() {
     .select("text.label")
     .attr("text-anchor", "middle")
     .attr("dy", d => {
-      const hv = d.type === "criteria" && d.value;
+      const hv = d.type === "criteria" && (d.value || d.note);
       return hv ? "-0.2em" : "0.35em";
     })
     .text(d => d.label || "");
@@ -528,27 +499,21 @@ function updateGraph() {
     .select("text.value-label")
     .attr("text-anchor", "middle")
     .attr("dy", "1.2em")
-    .text(d =>
-      d.type === "criteria" && d.value ? String(d.value) : ""
-    );
+    .text(d => {
+      if (d.type !== "criteria") return "";
+      const v = d.value ? String(d.value) : "";
+      const n = d.note ? String(d.note) : "";
+      if (v && n) return v + " · " + n;
+      return v || n || "";
+    });
 
   redrawSelection();
   redrawLinks();
 }
 
-function redrawSelection() {
-  nodeGroup
-    .selectAll(".node")
-    .classed("selected", d => d === selectedNode);
-  linkGroup
-    .selectAll(".link")
-    .classed("selected-edge", d => d === selectedEdge);
-}
-
 // drag
 function dragstarted(event, d) {
-  if (event.sourceEvent && event.sourceEvent.stopPropagation)
-    event.sourceEvent.stopPropagation();
+  if (event.sourceEvent && event.sourceEvent.stopPropagation) event.sourceEvent.stopPropagation();
   pushHistory();
 }
 function dragged(event, d) {
@@ -568,12 +533,10 @@ function dragended(event, d) {
 const zoom = d3
   .zoom()
   .scaleExtent([0.3, 2])
-  .on("zoom", event => {
-    zoomLayer.attr("transform", event.transform);
-  });
+  .on("zoom", event => zoomLayer.attr("transform", event.transform));
 svg.call(zoom);
 
-// клик по пустому месту
+// click empty
 svg.on("click", () => {
   selectedNode = null;
   selectedEdge = null;
@@ -582,17 +545,14 @@ svg.on("click", () => {
   redrawSelection();
 });
 
-// delete / undo
+// delete / undo hotkeys
 function deleteSelected() {
   if (selectedNode) {
     pushHistory();
     const idx = nodes.indexOf(selectedNode);
     if (idx >= 0) nodes.splice(idx, 1);
     for (let i = links.length - 1; i >= 0; i--) {
-      if (
-        links[i].source === selectedNode ||
-        links[i].target === selectedNode
-      ) {
+      if (links[i].source === selectedNode || links[i].target === selectedNode) {
         links.splice(i, 1);
       }
     }
@@ -609,39 +569,49 @@ function deleteSelected() {
     updateGraph();
   }
 }
-
 window.addEventListener("keydown", e => {
   if (e.key === "Delete") deleteSelected();
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") undo();
 });
 
-// ========= создание вершин =========
+// ======= кнопки UI =======
 function addNodeByType(type) {
   let defaultLabel =
-    type === "root"
-      ? "Диагноз"
-      : type === "criteria"
-      ? "новый критерий"
-      : type === "logic"
-      ? "И"
-      : "новый метод";
+    type === "root" ? "Заболевание" :
+    type === "criteria" ? "новый критерий" :
+    type === "logic" ? "И" :
+    "новый метод";
 
   let label = prompt("Подпись вершины:", defaultLabel);
-  if (!label) return;
+  if (label === null) return;
   label = label.trim();
+  if (!label) return;
+
+  if (type === "logic") label = normalizeLogicLabel(label);
 
   let value = null;
+  let note = null;
+
   if (type === "criteria") {
     let val = prompt("Значение критерия (опционально):", "");
-    if (val && val.trim()) value = val.trim();
+    if (val !== null) {
+      val = val.trim();
+      if (val) value = val;
+    }
+    let nt = prompt("Уточнение (опционально):", "");
+    if (nt !== null) {
+      nt = nt.trim();
+      if (nt) note = nt;
+    }
   }
 
   pushHistory();
-  const s = defaultNodeSize(type, type === "criteria" && !!value);
+  const s = defaultNodeSize(type, type === "criteria" && (!!value || !!note));
   const n = {
     id: "n_" + Math.random().toString(36).slice(2, 9),
     label,
     value,
+    note,
     type,
     x: 0,
     y: 0,
@@ -654,20 +624,23 @@ function addNodeByType(type) {
   updateGraph();
 }
 
-document.getElementById("add-root-btn").onclick = () =>
-  addNodeByType("root");
-document.getElementById("add-criteria-btn").onclick = () =>
-  addNodeByType("criteria");
-document.getElementById("add-logic-btn").onclick = () =>
-  addNodeByType("logic");
-document.getElementById("add-method-btn").onclick = () =>
-  addNodeByType("method");
+const addRootBtn = document.getElementById("add-root-btn");
+const addCriteriaBtn = document.getElementById("add-criteria-btn");
+const addLogicBtn = document.getElementById("add-logic-btn");
+const addMethodBtn = document.getElementById("add-method-btn");
 
-document.getElementById("delete-selected-btn").onclick = deleteSelected;
-document.getElementById("undo-btn").onclick = undo;
+if (addRootBtn) addRootBtn.onclick = () => addNodeByType("root");
+if (addCriteriaBtn) addCriteriaBtn.onclick = () => addNodeByType("criteria");
+if (addLogicBtn) addLogicBtn.onclick = () => addNodeByType("logic");
+if (addMethodBtn) addMethodBtn.onclick = () => addNodeByType("method");
 
-// ========= авторазмещение “как в konverter” =========
-// главное: дерево, и сортировка детей (методы слева, критерии справа)
+const delBtn = document.getElementById("delete-selected-btn");
+if (delBtn) delBtn.onclick = deleteSelected;
+
+const undoBtn = document.getElementById("undo-btn");
+if (undoBtn) undoBtn.onclick = undo;
+
+// ======= авторазмещение =======
 function autoLayoutKonverter(rootId, saveHistory = false) {
   if (!nodes.length) return;
   if (saveHistory) pushHistory();
@@ -683,7 +656,6 @@ function autoLayoutKonverter(rootId, saveHistory = false) {
     children.get(p).push(c);
   });
 
-  // порядок детей: method -> logic -> criteria
   function typeRank(id) {
     const n = idMap.get(id);
     if (!n) return 99;
@@ -693,15 +665,12 @@ function autoLayoutKonverter(rootId, saveHistory = false) {
     if (n.type === "root") return -1;
     return 10;
   }
-  children.forEach((arr, k) => {
-    arr.sort((a, b) => typeRank(a) - typeRank(b));
-  });
+  children.forEach(arr => arr.sort((a, b) => typeRank(a) - typeRank(b)));
 
   const visited = new Set();
-
   const marginX = 140;
   const marginY = 80;
-  const nodeSpacingX = 320; // шире чтобы методы не слепались
+  const nodeSpacingX = 320;
   const levelHeight = 150;
 
   let xCounter = 0;
@@ -724,18 +693,14 @@ function autoLayoutKonverter(rootId, saveHistory = false) {
       node.x = marginX + xCounter * nodeSpacingX;
       xCounter++;
     } else {
-      const xs = kids
-        .map(cid => idMap.get(cid)?.x)
-        .filter(v => typeof v === "number");
-      node.x = xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length
-                         : marginX + xCounter * nodeSpacingX;
+      const xs = kids.map(cid => idMap.get(cid)?.x).filter(v => typeof v === "number");
+      node.x = xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : marginX + xCounter * nodeSpacingX;
       if (!xs.length) xCounter++;
     }
   }
 
   dfs(rootId, 0);
 
-  // все “оторванные” — вниз
   const freeY = marginY + (maxDepth + 1) * levelHeight;
   nodes.filter(n => !visited.has(n.id)).forEach(n => {
     n.y = freeY;
@@ -746,10 +711,10 @@ function autoLayoutKonverter(rootId, saveHistory = false) {
   updateGraph();
 }
 
-document.getElementById("autolayout-btn").onclick = () =>
-  autoLayoutKonverter(rootNodeId || (nodes[0]?.id), true);
+const autolayoutBtn = document.getElementById("autolayout-btn");
+if (autolayoutBtn) autolayoutBtn.onclick = () => autoLayoutKonverter(rootNodeId || nodes[0]?.id, true);
 
-// ========= масштабирование размеров вершины =========
+// resize selected
 function resizeSelected(scale) {
   if (!selectedNode) return;
   ensureNodeSize(selectedNode);
@@ -758,23 +723,56 @@ function resizeSelected(scale) {
   selectedNode.h = Math.max(30, selectedNode.h * scale);
   updateGraph();
 }
-document.getElementById("enlarge-node-btn").onclick = () =>
-  resizeSelected(1.2);
-document.getElementById("shrink-node-btn").onclick = () =>
-  resizeSelected(0.8);
+const enlargeBtn = document.getElementById("enlarge-node-btn");
+const shrinkBtn = document.getElementById("shrink-node-btn");
+if (enlargeBtn) enlargeBtn.onclick = () => resizeSelected(1.2);
+if (shrinkBtn) shrinkBtn.onclick = () => resizeSelected(0.8);
 
-// ========= JSON графа =========
+// ======= очистка =======
+function clearAll() {
+  nodes.length = 0;
+  links.length = 0;
+  rootNodeId = null;
+
+  selectedNode = null;
+  selectedEdge = null;
+  edgeStartNode = null;
+
+  historyStack.length = 0;
+
+  const docName = document.getElementById("doc-name");
+  const docPage = document.getElementById("doc-page");
+  const docUur = document.getElementById("doc-uur");
+  const docUdd = document.getElementById("doc-udd");
+  if (docName) docName.value = "";
+  if (docPage) docPage.value = "";
+  if (docUur) docUur.value = "";
+  if (docUdd) docUdd.value = "";
+  if (recTextEl) recTextEl.innerText = "";
+
+  const fileInput = document.getElementById("json-input");
+  if (fileInput) fileInput.value = "";
+
+  updateGraph();
+  highlightRecText(null);
+}
+
+const clearBtn = document.getElementById("clear-btn");
+if (clearBtn) clearBtn.addEventListener("click", clearAll);
+
+// ======= JSON графа =======
 function buildGraphJSON() {
-  const docId = document.getElementById("doc-name").value || "";
-  const page = document.getElementById("doc-page").value || "";
-  const uur = document.getElementById("doc-uur").value || "";
-  const udd = document.getElementById("doc-udd").value || "";
-  const text = recTextEl.innerText || "";
+  const docId = (document.getElementById("doc-name")?.value || "");
+  const page = (document.getElementById("doc-page")?.value || "");
+  const uur = (document.getElementById("doc-uur")?.value || "");
+  const udd = (document.getElementById("doc-udd")?.value || "");
+  const text = recTextEl ? (recTextEl.innerText || "") : "";
 
   const nodesJson = nodes.map(n => ({
     id: n.id,
     label: n.label || "",
     value: n.value ?? null,
+    note: n.note ?? null,
     type: n.type || "",
     x: n.x || 0,
     y: n.y || 0,
@@ -807,26 +805,25 @@ function downloadFile(filename, content, mime) {
   URL.revokeObjectURL(url);
 }
 
-document.getElementById("save-graph-json-btn").onclick = () => {
-  if (!nodes.length) {
-    alert("Сначала нарисуйте или загрузите граф.");
-    return;
-  }
-  const graph = buildGraphJSON();
-  const filename =
-    "graph_" +
-    (graph.doc.id || "rec") +
-    "_" +
-    new Date().toISOString().replace(/[:.]/g, "-") +
-    ".json";
-  downloadFile(
-    filename,
-    JSON.stringify(graph, null, 2),
-    "application/json;charset=utf-8"
-  );
-};
+const saveGraphBtn = document.getElementById("save-graph-json-btn");
+if (saveGraphBtn) {
+  saveGraphBtn.onclick = () => {
+    if (!nodes.length) {
+      alert("Сначала нарисуйте или загрузите граф.");
+      return;
+    }
+    const graph = buildGraphJSON();
+    const filename =
+      "graph_" +
+      (graph.doc.id || "rec") +
+      "_" +
+      new Date().toISOString().replace(/[:.]/g, "-") +
+      ".json";
+    downloadFile(filename, JSON.stringify(graph, null, 2), "application/json;charset=utf-8");
+  };
+}
 
-// ======== PN.json -> граф (как konverter.html) ========
+// ======= PN.json -> граф (как konverter) =======
 function buildGraphFromPN(pnData) {
   const docKey = Object.keys(pnData)[0];
   const diseaseKey = Object.keys(pnData[docKey])[0];
@@ -835,11 +832,15 @@ function buildGraphFromPN(pnData) {
   const rec = disease["рекомендации"][0];
   const gm = rec["группаМетодовЛечения"];
 
-  document.getElementById("doc-name").value = docKey;
-  document.getElementById("doc-page").value = rec["номерСтраницы"] || "";
-  document.getElementById("doc-uur").value = rec["УУР"] || "";
-  document.getElementById("doc-udd").value = rec["УДД"] || "";
-  recTextEl.innerText = rec["оригинальныйТекст"] || "";
+  const docName = document.getElementById("doc-name");
+  const docPage = document.getElementById("doc-page");
+  const docUur = document.getElementById("doc-uur");
+  const docUdd = document.getElementById("doc-udd");
+  if (docName) docName.value = docKey;
+  if (docPage) docPage.value = rec["номерСтраницы"] || "";
+  if (docUur) docUur.value = rec["УУР"] || "";
+  if (docUdd) docUdd.value = rec["УДД"] || "";
+  if (recTextEl) recTextEl.innerText = rec["оригинальныйТекст"] || "";
 
   nodes.length = 0;
   links.length = 0;
@@ -848,14 +849,15 @@ function buildGraphFromPN(pnData) {
   edgeStartNode = null;
 
   const nodesMap = new Map();
-  function addNode(id, type, label, value) {
+  function addNode(id, type, label, value, note) {
     if (nodesMap.has(id)) return nodesMap.get(id);
-    const s = defaultNodeSize(type, type === "criteria" && !!value);
+    const s = defaultNodeSize(type, type === "criteria" && (!!value || !!note));
     const n = {
       id,
       type,
       label: label || "",
       value: value ?? null,
+      note: note ?? null,
       x: 0,
       y: 0,
       w: s.w,
@@ -867,58 +869,62 @@ function buildGraphFromPN(pnData) {
     return n;
   }
 
-  // ROOT = "ПН" (как в konverter) + диагноз можно оставить в label текста
-  const root = addNode("root_PN", "root", "ПН", null);
+  const root = addNode("root_PN", "root", "ПН", null, null);
   rootNodeId = root.id;
 
-  // 1) узел выбора методов (ИЛИ/И/НЕТ) — как в эталоне
-  // если подгруппМетодов одна — используем ее правило,
-  // иначе делаем общий узел ИЛИ и подвешиваем подгруппы
   const subs = gm["подгруппыМетодов"] || [];
   let methodChoice = null;
 
   if (subs.length === 1) {
     const sg = subs[0];
-    methodChoice = addNode(sg.id || "methods_rule", "logic", ruleSymbol(sg["правилоВыбора"] || "ANY"), null);
+    methodChoice = addNode(sg.id || "methods_rule", "logic", normalizeLogicLabel("ИЛИ"), null, null);
     links.push({ source: root, target: methodChoice, label: "рекомендуется", predicate: "рекомендуется" });
+
     (sg["методыЛечения"] || []).forEach(m => {
-      const mn = addNode(m.id, "method", m.label || m.id, null);
+      const mn = addNode(m.id, "method", m.label || m.id, null, null);
       links.push({ source: methodChoice, target: mn, label: "", predicate: "" });
     });
   } else {
-    methodChoice = addNode("methods_choice", "logic", "ИЛИ", null);
+    methodChoice = addNode("methods_choice", "logic", "ИЛИ", null, null);
     links.push({ source: root, target: methodChoice, label: "рекомендуется", predicate: "рекомендуется" });
 
     subs.forEach((sg, idx) => {
-      const sgNode = addNode(sg.id || ("sg_" + idx), "logic", ruleSymbol(sg["правилоВыбора"] || "ANY"), null);
+      const sgNode = addNode(sg.id || ("sg_" + idx), "logic", normalizeLogicLabel(sg["правилоВыбора"] || "ИЛИ"), null, null);
       links.push({ source: methodChoice, target: sgNode, label: "", predicate: "" });
 
       (sg["методыЛечения"] || []).forEach(m => {
-        const mn = addNode(m.id, "method", m.label || m.id, null);
+        const mn = addNode(m.id, "method", m.label || m.id, null, null);
         links.push({ source: sgNode, target: mn, label: "", predicate: "" });
       });
     });
   }
 
-  // 2) дерево критериев: подвешиваем к methodChoice (как в konverter)
+  function mapCriteriaEdgeLabel(rawType) {
+    const t = (rawType || "").trim().toLowerCase();
+    if (!t) return "";
+    if (t.includes("пациент")) return "критерий пациент";
+    if (t.includes("симптом")) return "критерий симптом";
+    if (t.includes("время")) return "критерий время";
+    if (t.includes("возмож")) return "критерий возможность";
+    if (t === "для") return "для";
+    return rawType;
+  }
+
   function processCriteriaGroup(groupObj, parentNode) {
-    const gNode = addNode(groupObj.id, "logic", ruleSymbol(groupObj["правилоВыбора"] || "ALL"), null);
+    const gNode = addNode(groupObj.id, "logic", normalizeLogicLabel(groupObj["правилоВыбора"] || "И"), null, null);
     links.push({ source: parentNode, target: gNode, label: "", predicate: "" });
 
     (groupObj["критерии"] || []).forEach(c => {
       const cid = c.id;
       const clabel = c["имя"] || cid;
       const cvalue = c["значение"] ? String(c["значение"]) : null;
-      const cn = addNode(cid, "criteria", clabel, cvalue);
+      const cn = addNode(cid, "criteria", clabel, cvalue, null);
 
-      // ВАЖНО: связь логики -> критерий подписана типом критерия (как в konverter)
       const edgeLabel = mapCriteriaEdgeLabel(c["тип"] || "");
       links.push({ source: gNode, target: cn, label: edgeLabel, predicate: edgeLabel });
     });
 
-    (groupObj["подгруппыКритериев"] || []).forEach(sub => {
-      processCriteriaGroup(sub, gNode);
-    });
+    (groupObj["подгруппыКритериев"] || []).forEach(sub => processCriteriaGroup(sub, gNode));
   }
 
   if (gm["группаКритериев"]) {
@@ -929,39 +935,39 @@ function buildGraphFromPN(pnData) {
   autoLayoutKonverter(rootNodeId, false);
 }
 
-// ========= загрузка JSON (graph.json или PN.json) =========
-document.getElementById("json-input").addEventListener("change", e => {
-  const file = e.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = () => {
-    try {
-      const data = JSON.parse(reader.result);
+// ======= загрузка JSON =======
+const jsonInput = document.getElementById("json-input");
+if (jsonInput) {
+  jsonInput.addEventListener("change", e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const data = JSON.parse(reader.result);
 
-      // 1) формат { graph: { nodes, links, doc } }
-      if (data.graph && Array.isArray(data.graph.nodes)) {
-        loadGraphFromJSON(data.graph);
-        alert("Загружен graph.json (обёрнутый в {graph})");
-        return;
+        if (data.graph && Array.isArray(data.graph.nodes)) {
+          loadGraphFromJSON(data.graph);
+          alert("Загружен graph.json (обёрнутый в {graph})");
+          return;
+        }
+
+        if (Array.isArray(data.nodes) && Array.isArray(data.links)) {
+          loadGraphFromJSON(data);
+          alert("Загружен графовый JSON");
+          return;
+        }
+
+        buildGraphFromPN(data);
+        alert("Загружен PN.json и по нему построен граф.");
+      } catch (err) {
+        console.error(err);
+        alert("Ошибка чтения JSON: " + err);
       }
-
-      // 2) формат { nodes, links, doc } – «чистый» граф
-      if (Array.isArray(data.nodes) && Array.isArray(data.links)) {
-        loadGraphFromJSON(data);
-        alert("Загружен графовый JSON");
-        return;
-      }
-
-      // 3) иначе PN.json
-      buildGraphFromPN(data);
-      alert("Загружен PN.json и по нему построен граф (как konverter).");
-    } catch (err) {
-      console.error(err);
-      alert("Ошибка чтения JSON: " + err);
-    }
-  };
-  reader.readAsText(file);
-});
+    };
+    reader.readAsText(file);
+  });
+}
 
 function loadGraphFromJSON(graph) {
   nodes.length = 0;
@@ -973,7 +979,7 @@ function loadGraphFromJSON(graph) {
 
   (graph.nodes || []).forEach(n => {
     const t = n.type || "criteria";
-    const hv = t === "criteria" && !!n.value;
+    const hv = t === "criteria" && (!!n.value || !!n.note);
     const size = {
       w: n.w || defaultNodeSize(t, hv).w,
       h: n.h || defaultNodeSize(t, hv).h
@@ -982,6 +988,7 @@ function loadGraphFromJSON(graph) {
       id: n.id,
       label: n.label || "",
       value: n.value ?? null,
+      note: n.note ?? null,
       type: t,
       x: n.x || 0,
       y: n.y || 0,
@@ -1013,58 +1020,22 @@ function loadGraphFromJSON(graph) {
   });
 
   if (graph.doc) {
-    document.getElementById("doc-name").value = graph.doc.id || "";
-    document.getElementById("doc-page").value = graph.doc.page || "";
-    document.getElementById("doc-uur").value = graph.doc.uur || "";
-    document.getElementById("doc-udd").value = graph.doc.udd || "";
-    recTextEl.innerText = graph.doc.text || "";
+    const docName = document.getElementById("doc-name");
+    const docPage = document.getElementById("doc-page");
+    const docUur = document.getElementById("doc-uur");
+    const docUdd = document.getElementById("doc-udd");
+    if (docName) docName.value = graph.doc.id || "";
+    if (docPage) docPage.value = graph.doc.page || "";
+    if (docUur) docUur.value = graph.doc.uur || "";
+    if (docUdd) docUdd.value = graph.doc.udd || "";
+    if (recTextEl) recTextEl.innerText = graph.doc.text || "";
   }
 
   historyStack.length = 0;
-  autoLayoutKonverter(rootNodeId || (nodes[0]?.id), false);
+  autoLayoutKonverter(rootNodeId || nodes[0]?.id, false);
 }
 
-function clearAll() {
-  // очистить граф
-  nodes.length = 0;
-  links.length = 0;
-  rootNodeId = null;
-
-  // сбросить выделения / режимы
-  selectedNode = null;
-  selectedEdge = null;
-  edgeStartNode = null;
-  // edgeMode оставляем как есть, но можно тоже сбрасывать:
-  // edgeMode = false; updateEdgeModeButton();
-
-  // очистить историю
-  historyStack.length = 0;
-
-  // очистить поля документа
-  document.getElementById("doc-name").value = "";
-  document.getElementById("doc-page").value = "";
-  document.getElementById("doc-uur").value = "";
-  document.getElementById("doc-udd").value = "";
-  recTextEl.innerText = "";
-
-  // сбросить input file (чтобы можно было загрузить тот же файл снова)
-  const fileInput = document.getElementById("json-input");
-  if (fileInput) fileInput.value = "";
-
-  // перерисовать
-  updateGraph();
-  highlightRecText(null);
-}
-
-document.getElementById("clear-btn").addEventListener("click", () => {
-  clearAll();
-});
-
-
-
-
-// ========= вызовы бекенда =========
-
+// ======= backend calls =======
 async function backendToTTL(graph) {
   const resp = await fetch(`${API_BASE}/api/graph/to-ttl`, {
     method: "POST",
@@ -1074,7 +1045,6 @@ async function backendToTTL(graph) {
   if (!resp.ok) throw new Error("Ошибка backend при формировании TTL");
   return await resp.text();
 }
-
 async function backendToTriples(graph) {
   const resp = await fetch(`${API_BASE}/api/graph/to-triples`, {
     method: "POST",
@@ -1085,60 +1055,66 @@ async function backendToTriples(graph) {
   return await resp.json();
 }
 
-document.getElementById("generate-btn").onclick = async () => {
-  if (!nodes.length) {
-    alert("Сначала нарисуйте или загрузите граф.");
-    return;
-  }
-  try {
-    const graph = buildGraphJSON();
-    const ttl = await backendToTTL(graph);
-    const triples = await backendToTriples(graph);
+const generateBtn = document.getElementById("generate-btn");
+if (generateBtn) {
+  generateBtn.onclick = async () => {
+    if (!nodes.length) {
+      alert("Сначала нарисуйте или загрузите граф.");
+      return;
+    }
+    try {
+      const graph = buildGraphJSON();
+      const ttl = await backendToTTL(graph);
+      const triples = await backendToTriples(graph);
 
-    const payload = {
-      doc_id: graph.doc.id,
-      page: graph.doc.page,
-      uur: graph.doc.uur,
-      udd: graph.doc.udd,
-      text: graph.doc.text,
-      triples,
-      graph
-    };
+      const payload = {
+        doc_id: graph.doc.id,
+        page: graph.doc.page,
+        uur: graph.doc.uur,
+        udd: graph.doc.udd,
+        text: graph.doc.text,
+        triples,
+        graph
+      };
 
-    downloadFile("recommendation.ttl", ttl, "text/turtle;charset=utf-8");
-    downloadFile("triples.json", JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
-  } catch (e) {
-    console.error(e);
-    alert(e.message || "Ошибка при работе с backend");
-  }
-};
+      downloadFile("recommendation.ttl", ttl, "text/turtle;charset=utf-8");
+      downloadFile("triples.json", JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+    } catch (e) {
+      console.error(e);
+      alert(e.message || "Ошибка при работе с backend");
+    }
+  };
+}
 
-document.getElementById("export-xlsx-btn").onclick = async () => {
-  if (!nodes.length) {
-    alert("Сначала нарисуйте или загрузите граф.");
-    return;
-  }
-  try {
-    const graph = buildGraphJSON();
-    const resp = await fetch(`${API_BASE}/api/graph/to-triples-xlsx`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(graph)
-    });
-    if (!resp.ok) throw new Error("Ошибка backend при формировании XLSX");
+const exportXlsxBtn = document.getElementById("export-xlsx-btn");
+if (exportXlsxBtn) {
+  exportXlsxBtn.onclick = async () => {
+    if (!nodes.length) {
+      alert("Сначала нарисуйте или загрузите граф.");
+      return;
+    }
+    try {
+      const graph = buildGraphJSON();
+      const resp = await fetch(`${API_BASE}/api/graph/to-triples-xlsx`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(graph)
+      });
+      if (!resp.ok) throw new Error("Ошибка backend при формировании XLSX");
 
-    const blob = await resp.blob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = (graph.doc.id || "PN_triples") + ".xlsx";
-    a.click();
-    URL.revokeObjectURL(url);
-  } catch (e) {
-    console.error(e);
-    alert(e.message || "Ошибка при скачивании XLSX");
-  }
-};
+      const blob = await resp.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = (graph.doc.id || "triples") + ".xlsx";
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error(e);
+      alert(e.message || "Ошибка при скачивании XLSX");
+    }
+  };
+}
 
-// старт – пустой граф
+// старт
 updateGraph();
