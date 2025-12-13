@@ -55,18 +55,32 @@ const nodes = [];
 const links = [];
 let rootNodeId = null;
 
-// ======= предикаты: автоподбор =======
-const PRED_ROLE_OPTIONS = [
+// ======= большой список предикатов (как ты дала) =======
+const BIG_PREDICATES = [
+  "следующий шаг",
+  "используется",
+  "осуществляется с/без",
+  "рекомендуется",
+  "уточнение",
+  "связь И",
+  "связь ИЛИ",
   "критерий пациент",
   "критерий симптом",
   "критерий время",
   "критерий возможность",
+  "код АТХ",
   "для",
+  "группа АТХ",
+  "при",
+  "связь НЕТ",
+  "место проведения",
+  "анализ",
+  "применяется",
   "значение",
-  "уточнение",
-  "" // пусто (операнд логики)
+  "" // пусто (если нужно)
 ];
 
+// ======= normalize logic labels =======
 function normalizeLogicLabel(lbl) {
   const s = (lbl || "").trim().toUpperCase();
   if (s === "ANY") return "ИЛИ";
@@ -75,57 +89,152 @@ function normalizeLogicLabel(lbl) {
   return lbl || "";
 }
 
-function pickPredicateFromList(defaultPred = "") {
-  const items = PRED_ROLE_OPTIONS
-    .map((p, i) => `${i + 1}) ${p === "" ? "(пусто)" : p}`)
-    .join("\n");
+// ======= Edge Wizard (группа/подгруппа + предикат) =======
+// Ожидает HTML-блок с id="edge-wizard" (как я давал для editor.html)
+const edgeWizardEl = document.getElementById("edge-wizard");
+const edgeScopeEl = document.getElementById("edge-scope");
+const edgeScopeNameRowEl = document.getElementById("edge-scope-name-row");
+const edgeScopeNameEl = document.getElementById("edge-scope-name");
+const edgePredicateEl = document.getElementById("edge-predicate");
+const edgeOkEl = document.getElementById("edge-ok");
+const edgeCancelEl = document.getElementById("edge-cancel");
 
-  const msg =
-    `Выберите предикат для связи:\n${items}\n\n` +
-    `Введите номер (1-${PRED_ROLE_OPTIONS.length}) или текст предиката вручную:`;
+let _edgeWizardResolve = null;
 
-  const input = prompt(msg, defaultPred || "1");
-  if (input === null) return null;
-
-  const t = input.trim();
-  if (!t) return "";
-
-  const num = parseInt(t, 10);
-  if (!Number.isNaN(num) && num >= 1 && num <= PRED_ROLE_OPTIONS.length) {
-    return PRED_ROLE_OPTIONS[num - 1];
-  }
-  return t;
+function wizardAvailable() {
+  return !!(edgeWizardEl && edgeScopeEl && edgeScopeNameEl && edgePredicateEl && edgeOkEl && edgeCancelEl);
 }
 
-function autoPredicateForEdge(sourceNode, targetNode) {
-  // root -> method => рекомендуется
-  if (sourceNode.type === "root" && targetNode.type === "method") return "рекомендуется";
+function openEdgeWizard({ forceScope = false, defaultScope = "", defaultScopeName = "", defaultPredicate = "" } = {}) {
+  // Если popup нет — fallback через prompt
+  if (!wizardAvailable()) {
+    const scope = forceScope
+      ? (prompt("Контейнер (группа/подгруппа или пусто):", defaultScope || "группа") || "").trim()
+      : (prompt("Контейнер (группа/подгруппа или пусто):", defaultScope || "") || "").trim();
+    const scopeName = (scope ? (prompt("Название группы/подгруппы:", defaultScopeName || "") || "").trim() : "");
+    const pred = (prompt("Предикат:", defaultPredicate || "используется") || "").trim();
+    return Promise.resolve({ scope, scopeName, predicate: pred });
+  }
 
-  // root -> logic => рекомендуется (группа методов)
-  if (sourceNode.type === "root" && targetNode.type === "logic") return "рекомендуется";
+  return new Promise((resolve) => {
+    _edgeWizardResolve = resolve;
 
-  // method -> logic => используется (привязка условий/групп)
-  if (sourceNode.type === "method" && targetNode.type === "logic") return "используется";
+    // fill predicates
+    edgePredicateEl.innerHTML = "";
+    BIG_PREDICATES.forEach(p => {
+      const opt = document.createElement("option");
+      opt.value = p;
+      opt.textContent = (p === "" ? "(пусто)" : p);
+      edgePredicateEl.appendChild(opt);
+    });
 
-  // logic -> criteria => роль/для/значение/уточнение (выбор)
+    // defaults
+    const scopeVal = forceScope ? (defaultScope || "группа") : (defaultScope || "");
+    edgeScopeEl.value = scopeVal;
+    edgeScopeNameEl.value = defaultScopeName || "";
+
+    const showName = () => {
+      const need = edgeScopeEl.value === "группа" || edgeScopeEl.value === "подгруппа";
+      if (edgeScopeNameRowEl) edgeScopeNameRowEl.style.display = need ? "flex" : "none";
+      if (!need) edgeScopeNameEl.value = "";
+    };
+    showName();
+    edgeScopeEl.onchange = showName;
+
+    if (defaultPredicate && BIG_PREDICATES.includes(defaultPredicate)) {
+      edgePredicateEl.value = defaultPredicate;
+    } else {
+      edgePredicateEl.value = defaultPredicate || "используется";
+    }
+
+    edgeWizardEl.classList.remove("hidden");
+  });
+}
+
+function closeEdgeWizard() {
+  if (wizardAvailable()) edgeWizardEl.classList.add("hidden");
+}
+
+if (wizardAvailable()) {
+  edgeOkEl.onclick = () => {
+    const scope = edgeScopeEl.value || "";
+    const scopeName = (edgeScopeNameEl.value || "").trim();
+    const predicate = edgePredicateEl.value || "";
+
+    closeEdgeWizard();
+    if (_edgeWizardResolve) _edgeWizardResolve({ scope, scopeName, predicate });
+    _edgeWizardResolve = null;
+  };
+
+  edgeCancelEl.onclick = () => {
+    closeEdgeWizard();
+    if (_edgeWizardResolve) _edgeWizardResolve(null);
+    _edgeWizardResolve = null;
+  };
+
+  edgeWizardEl.addEventListener("click", (e) => {
+    if (e.target === edgeWizardEl) edgeCancelEl.onclick();
+  });
+}
+
+// ======= Автодефолты для мастера (но выбор всегда делает пользователь) =======
+function defaultsForEdge(sourceNode, targetNode) {
+  let defaultPredicate = "используется";
+  let defaultScope = "";
+  let defaultScopeName = "";
+
+  // root -> method / root -> logic
+  if (sourceNode.type === "root" && (targetNode.type === "method" || targetNode.type === "logic")) {
+    defaultPredicate = "рекомендуется";
+  }
+
+  // method -> logic (часто привязка условий)
+  if (sourceNode.type === "method" && targetNode.type === "logic") {
+    defaultPredicate = "используется";
+    defaultScope = "группа";
+    defaultScopeName = "группа критериев";
+  }
+
+  // logic -> criteria
   if (sourceNode.type === "logic" && targetNode.type === "criteria") {
-    return pickPredicateFromList("критерий пациент");
+    defaultPredicate = "критерий пациент";
+    defaultScope = "группа";
+    defaultScopeName = "группа критериев";
   }
 
-  // logic -> logic => операнд (пусто)
-  if (sourceNode.type === "logic" && targetNode.type === "logic") return "";
+  // logic -> logic (операнды)
+  if (sourceNode.type === "logic" && targetNode.type === "logic") {
+    defaultPredicate = "";
+    defaultScope = "подгруппа";
+    defaultScopeName = "подгруппа";
+  }
 
-  // method -> criteria (если рисуют напрямую) => выбор
+  // method -> criteria (если вдруг так рисуют)
   if (sourceNode.type === "method" && targetNode.type === "criteria") {
-    return pickPredicateFromList("для");
+    defaultPredicate = "для";
+    defaultScope = "группа";
+    defaultScopeName = "группа уточнений";
   }
 
-  // criteria -> criteria => выбор
+  // criteria -> criteria (атрибуты)
   if (sourceNode.type === "criteria" && targetNode.type === "criteria") {
-    return pickPredicateFromList("");
+    defaultPredicate = "уточнение";
   }
 
-  return "";
+  return { defaultPredicate, defaultScope, defaultScopeName };
+}
+
+async function chooseEdgeMeta(sourceNode, targetNode) {
+  // Если красная вершина участвует — форсим выбор группы/подгруппы (как ты просила)
+  const forceScope = sourceNode.type === "logic" || targetNode.type === "logic";
+  const d = defaultsForEdge(sourceNode, targetNode);
+  const res = await openEdgeWizard({
+    forceScope,
+    defaultScope: d.defaultScope,
+    defaultScopeName: d.defaultScopeName,
+    defaultPredicate: d.defaultPredicate
+  });
+  return res; // {scope, scopeName, predicate} или null
 }
 
 // ======= отображение =======
@@ -165,7 +274,9 @@ function pushHistory() {
       source: l.source.id,
       target: l.target.id,
       predicate: l.predicate || "",
-      label: l.label || ""
+      label: l.label || "",
+      scope: l.scope || "",
+      scopeName: l.scopeName || ""
     })),
     rootNodeId
   });
@@ -187,7 +298,9 @@ function undo() {
         source: s,
         target: t,
         predicate: l.predicate,
-        label: l.label
+        label: l.label,
+        scope: l.scope || "",
+        scopeName: l.scopeName || ""
       });
     }
   });
@@ -262,7 +375,6 @@ if (edgeModeBtn) {
 updateEdgeModeButton();
 
 function computeVisible() {
-  const idMap = rebuildIdMap();
   const children = new Map();
   links.forEach(l => {
     const p = l.source.id;
@@ -330,14 +442,25 @@ function updateGraph() {
       selectedNode = null;
       redrawSelection();
     })
-    .on("dblclick", (event, d) => {
+    .on("dblclick", async (event, d) => {
       event.stopPropagation();
-      const pred = prompt("Предикат для ребра:", d.predicate || d.label || "");
-      if (pred === null) return;
-      const trimmed = pred.trim();
+
+      // редактирование ребра через тот же мастер
+      const src = d.source;
+      const tgt = d.target;
+      const res = await openEdgeWizard({
+        forceScope: (src.type === "logic" || tgt.type === "logic"),
+        defaultScope: d.scope || "",
+        defaultScopeName: d.scopeName || "",
+        defaultPredicate: d.predicate || d.label || "используется"
+      });
+      if (res === null) return;
+
       pushHistory();
-      d.predicate = trimmed;
-      d.label = trimmed;
+      d.predicate = (res.predicate || "").trim();
+      d.label = (res.predicate || "").trim();
+      d.scope = res.scope || "";
+      d.scopeName = res.scopeName || "";
       updateGraph();
     });
 
@@ -362,14 +485,24 @@ function updateGraph() {
       selectedNode = null;
       redrawSelection();
     })
-    .on("dblclick", (event, d) => {
+    .on("dblclick", async (event, d) => {
       event.stopPropagation();
-      const pred = prompt("Предикат для ребра:", d.predicate || d.label || "");
-      if (pred === null) return;
-      const trimmed = pred.trim();
+
+      const src = d.source;
+      const tgt = d.target;
+      const res = await openEdgeWizard({
+        forceScope: (src.type === "logic" || tgt.type === "logic"),
+        defaultScope: d.scope || "",
+        defaultScopeName: d.scopeName || "",
+        defaultPredicate: d.predicate || d.label || "используется"
+      });
+      if (res === null) return;
+
       pushHistory();
-      d.predicate = trimmed;
-      d.label = trimmed;
+      d.predicate = (res.predicate || "").trim();
+      d.label = (res.predicate || "").trim();
+      d.scope = res.scope || "";
+      d.scopeName = res.scopeName || "";
       updateGraph();
     });
 
@@ -394,7 +527,7 @@ function updateGraph() {
         .on("drag", dragged)
         .on("end", dragended)
     )
-    .on("click", (event, d) => {
+    .on("click", async (event, d) => {
       event.stopPropagation();
 
       if (edgeMode) {
@@ -403,20 +536,24 @@ function updateGraph() {
           selectedNode = d;
           redrawSelection();
         } else if (edgeStartNode !== d) {
-          const pred = autoPredicateForEdge(edgeStartNode, d);
-          if (pred === null) {
+          const res = await chooseEdgeMeta(edgeStartNode, d);
+          if (res === null) {
             edgeStartNode = null;
             selectedNode = null;
             redrawSelection();
             return;
           }
+
           pushHistory();
           links.push({
             source: edgeStartNode,
             target: d,
-            predicate: (pred || "").trim(),
-            label: (pred || "").trim()
+            predicate: (res.predicate || "").trim(),
+            label: (res.predicate || "").trim(),
+            scope: res.scope || "",
+            scopeName: res.scopeName || ""
           });
+
           edgeStartNode = null;
           selectedNode = null;
           updateGraph();
@@ -640,22 +777,45 @@ if (delBtn) delBtn.onclick = deleteSelected;
 const undoBtn = document.getElementById("undo-btn");
 if (undoBtn) undoBtn.onclick = undo;
 
-// ======= авторазмещение =======
+// edge mode
+const edgeModeBtn2 = document.getElementById("edge-mode-btn");
+if (edgeModeBtn2) {
+  edgeModeBtn2.addEventListener("click", () => {
+    edgeMode = !edgeMode;
+    edgeStartNode = null;
+    selectedNode = null;
+    selectedEdge = null;
+    redrawSelection();
+    updateEdgeModeButton();
+  });
+}
+
+// ======= авторазмещение (ЭТАЛОН + анти-наложения) =======
+// Основа взята из konverter.html / rec1_redactor.html (DFS + уровни),
+// но улучшена: 1) считаем "ширину поддерева" 2) раскладываем детей по полосам
+// 3) устраняем пересечения по каждому уровню с переносом поддерева
+
 function autoLayoutKonverter(rootId, saveHistory = false) {
   if (!nodes.length) return;
+  if (!rootId) rootId = rootNodeId || nodes[0]?.id;
+  if (!rootId) return;
   if (saveHistory) pushHistory();
 
+  nodes.forEach(ensureNodeSize);
   const idMap = rebuildIdMap();
 
+  // children (дерево по направлению стрелок)
   const children = new Map();
   nodes.forEach(n => children.set(n.id, []));
   links.forEach(l => {
-    const p = l.source.id;
-    const c = l.target.id;
+    const p = l.source?.id;
+    const c = l.target?.id;
+    if (!p || !c) return;
     if (!children.has(p)) children.set(p, []);
-    children.get(p).push(c);
+    if (!children.get(p).includes(c)) children.get(p).push(c);
   });
 
+  // сортировка детей (стабильность как в эталоне)
   function typeRank(id) {
     const n = idMap.get(id);
     if (!n) return 99;
@@ -667,49 +827,178 @@ function autoLayoutKonverter(rootId, saveHistory = false) {
   }
   children.forEach(arr => arr.sort((a, b) => typeRank(a) - typeRank(b)));
 
-  const visited = new Set();
+  // параметры
   const marginX = 140;
-  const marginY = 80;
-  const nodeSpacingX = 320;
-  const levelHeight = 150;
+  const marginY = 90;
+  const levelHeight = 170;
+  const gapX = 80;      // разрыв между боксами на уровне
+  const leafPad = 40;   // воздух для листа
 
-  let xCounter = 0;
-  let maxDepth = 0;
+  // subtree width + depth
+  const subtreeWidth = new Map();
+  const depthMap = new Map();
+  const seen = new Set();
 
-  function dfs(id, depth) {
-    if (!id || visited.has(id)) return;
-    visited.add(id);
+  function computeWidths(id, depth) {
+    if (!id || seen.has(id)) return 0;
+    seen.add(id);
+    depthMap.set(id, depth);
 
-    const node = idMap.get(id);
-    if (!node) return;
-
-    maxDepth = Math.max(maxDepth, depth);
-    node.y = marginY + depth * levelHeight;
+    const n = idMap.get(id);
+    if (!n) return 0;
 
     const kids = (children.get(id) || []).filter(cid => idMap.has(cid));
-    kids.forEach(cid => dfs(cid, depth + 1));
+    if (!kids.length) {
+      const w = Math.max(n.w + leafPad, n.w);
+      subtreeWidth.set(id, w);
+      return w;
+    }
 
-    if (kids.length === 0) {
-      node.x = marginX + xCounter * nodeSpacingX;
-      xCounter++;
-    } else {
-      const xs = kids.map(cid => idMap.get(cid)?.x).filter(v => typeof v === "number");
-      node.x = xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : marginX + xCounter * nodeSpacingX;
-      if (!xs.length) xCounter++;
+    let sum = 0;
+    kids.forEach((cid, idx) => {
+      const cw = computeWidths(cid, depth + 1);
+      sum += cw;
+      if (idx > 0) sum += gapX;
+    });
+
+    const w = Math.max(n.w, sum);
+    subtreeWidth.set(id, w);
+    return w;
+  }
+
+  function place(id, xLeft) {
+    const n = idMap.get(id);
+    if (!n) return;
+
+    const depth = depthMap.get(id) || 0;
+    n.y = marginY + depth * levelHeight;
+
+    const kids = (children.get(id) || []).filter(cid => idMap.has(cid));
+    if (!kids.length) {
+      const w = subtreeWidth.get(id) || n.w;
+      n.x = marginX + xLeft + w / 2;
+      return;
+    }
+
+    let cursor = xLeft;
+    kids.forEach((cid) => {
+      const cw = subtreeWidth.get(cid) || (idMap.get(cid)?.w ?? 120);
+      place(cid, cursor);
+      cursor += cw + gapX;
+    });
+
+    // центр родителя = центр между первым и последним ребенком
+    const first = idMap.get(kids[0]);
+    const last = idMap.get(kids[kids.length - 1]);
+    n.x = (first.x + last.x) / 2;
+  }
+
+  // shift subtree (для сдвигов веера и коллизий)
+  function shiftSubtree(id, dx) {
+    const stack = [id];
+    const visited = new Set();
+    while (stack.length) {
+      const cur = stack.pop();
+      if (!cur || visited.has(cur)) continue;
+      visited.add(cur);
+      const node = idMap.get(cur);
+      if (node) node.x += dx;
+      (children.get(cur) || []).forEach(ch => stack.push(ch));
     }
   }
 
-  dfs(rootId, 0);
+  // группировка по глубине для разруливания коллизий
+  function buildByDepth() {
+    const byDepth = new Map();
+    nodes.forEach(n => {
+      const d = depthMap.get(n.id);
+      if (d === undefined) return;
+      if (!byDepth.has(d)) byDepth.set(d, []);
+      byDepth.get(d).push(n);
+    });
+    return byDepth;
+  }
 
-  const freeY = marginY + (maxDepth + 1) * levelHeight;
-  nodes.filter(n => !visited.has(n.id)).forEach(n => {
-    n.y = freeY;
-    n.x = marginX + xCounter * nodeSpacingX;
-    xCounter++;
-  });
+  // разруливание пересечений на уровне (двигаем поддеревья вправо)
+  function resolveLevelCollisions(byDepth) {
+    [...byDepth.keys()].sort((a, b) => a - b).forEach(d => {
+      const arr = byDepth.get(d).slice().sort((a, b) => a.x - b.x);
+      for (let i = 1; i < arr.length; i++) {
+        const prev = arr[i - 1];
+        const cur = arr[i];
+        const prevRight = prev.x + prev.w / 2;
+        const curLeft = cur.x - cur.w / 2;
+        const need = (prevRight + gapX) - curLeft;
+        if (need > 0) shiftSubtree(cur.id, need);
+      }
+    });
+  }
+
+  // ======= ГЛАВНОЕ: “как скрин 1” — веер вокруг родителя, но прямые линии =======
+  function balanceChildrenAroundParent(parentId) {
+    const p = idMap.get(parentId);
+    if (!p) return;
+
+    const kidsIds = (children.get(parentId) || []).filter(cid => idMap.has(cid));
+    if (kidsIds.length <= 1) return;
+
+    const kids = kidsIds.map(id => idMap.get(id));
+
+    // шаг веера = max ширина ребенка + gap
+    const step = Math.max(...kids.map(k => k.w)) + gapX;
+
+    // целевые x вокруг родителя: левый/центр/правый и т.д.
+    const center = (kids.length - 1) / 2;
+
+    // сортируем по текущему x, чтобы сохранять порядок
+    kids.sort((a, b) => a.x - b.x);
+
+    kids.forEach((k, i) => {
+      const targetX = p.x + (i - center) * step;
+      const dx = targetX - k.x;
+      if (Math.abs(dx) > 1) shiftSubtree(k.id, dx);
+    });
+  }
+
+  // ======= запуск =======
+  seen.clear();
+  computeWidths(rootId, 0);
+  place(rootId, 0);
+
+  // несколько проходов: (1) коллизии, (2) веер, (3) коллизии
+  for (let pass = 0; pass < 4; pass++) {
+    const byDepth = buildByDepth();
+    resolveLevelCollisions(byDepth);
+
+    // веер сверху вниз (чтобы И/ИЛИ разъезжались как на скрине 1)
+    const ordered = nodes
+      .slice()
+      .filter(n => depthMap.has(n.id))
+      .sort((a, b) => (depthMap.get(a.id) - depthMap.get(b.id)) || (a.x - b.x));
+
+    ordered.forEach(n => balanceChildrenAroundParent(n.id));
+
+    // после веера — снова коллизии
+    resolveLevelCollisions(byDepth);
+  }
+
+  // недостижимые узлы — внизу в ряд
+  const placed = new Set(depthMap.keys());
+  const free = nodes.filter(n => !placed.has(n.id));
+  if (free.length) {
+    const maxD = Math.max(...[...depthMap.values()]);
+    const baseY = marginY + (maxD + 2) * levelHeight;
+    let x = marginX;
+    free.forEach(n => {
+      n.y = baseY;
+      n.x = x + n.w / 2;
+      x += n.w + gapX;
+    });
+  }
 
   updateGraph();
 }
+
 
 const autolayoutBtn = document.getElementById("autolayout-btn");
 if (autolayoutBtn) autolayoutBtn.onclick = () => autoLayoutKonverter(rootNodeId || nodes[0]?.id, true);
@@ -785,7 +1074,9 @@ function buildGraphJSON() {
     source: l.source.id,
     target: l.target.id,
     predicate: (l.predicate || l.label || "").trim(),
-    label: (l.label || "").trim()
+    label: (l.label || "").trim(),
+    scope: l.scope || "",
+    scopeName: l.scopeName || ""
   }));
 
   return {
@@ -878,23 +1169,23 @@ function buildGraphFromPN(pnData) {
   if (subs.length === 1) {
     const sg = subs[0];
     methodChoice = addNode(sg.id || "methods_rule", "logic", normalizeLogicLabel("ИЛИ"), null, null);
-    links.push({ source: root, target: methodChoice, label: "рекомендуется", predicate: "рекомендуется" });
+    links.push({ source: root, target: methodChoice, label: "рекомендуется", predicate: "рекомендуется", scope: "", scopeName: "" });
 
     (sg["методыЛечения"] || []).forEach(m => {
       const mn = addNode(m.id, "method", m.label || m.id, null, null);
-      links.push({ source: methodChoice, target: mn, label: "", predicate: "" });
+      links.push({ source: methodChoice, target: mn, label: "", predicate: "", scope: "", scopeName: "" });
     });
   } else {
     methodChoice = addNode("methods_choice", "logic", "ИЛИ", null, null);
-    links.push({ source: root, target: methodChoice, label: "рекомендуется", predicate: "рекомендуется" });
+    links.push({ source: root, target: methodChoice, label: "рекомендуется", predicate: "рекомендуется", scope: "", scopeName: "" });
 
     subs.forEach((sg, idx) => {
       const sgNode = addNode(sg.id || ("sg_" + idx), "logic", normalizeLogicLabel(sg["правилоВыбора"] || "ИЛИ"), null, null);
-      links.push({ source: methodChoice, target: sgNode, label: "", predicate: "" });
+      links.push({ source: methodChoice, target: sgNode, label: "", predicate: "", scope: "", scopeName: "" });
 
       (sg["методыЛечения"] || []).forEach(m => {
         const mn = addNode(m.id, "method", m.label || m.id, null, null);
-        links.push({ source: sgNode, target: mn, label: "", predicate: "" });
+        links.push({ source: sgNode, target: mn, label: "", predicate: "", scope: "", scopeName: "" });
       });
     });
   }
@@ -907,12 +1198,13 @@ function buildGraphFromPN(pnData) {
     if (t.includes("время")) return "критерий время";
     if (t.includes("возмож")) return "критерий возможность";
     if (t === "для") return "для";
+    if (t === "при") return "при";
     return rawType;
   }
 
   function processCriteriaGroup(groupObj, parentNode) {
     const gNode = addNode(groupObj.id, "logic", normalizeLogicLabel(groupObj["правилоВыбора"] || "И"), null, null);
-    links.push({ source: parentNode, target: gNode, label: "", predicate: "" });
+    links.push({ source: parentNode, target: gNode, label: "", predicate: "", scope: "", scopeName: "" });
 
     (groupObj["критерии"] || []).forEach(c => {
       const cid = c.id;
@@ -921,7 +1213,7 @@ function buildGraphFromPN(pnData) {
       const cn = addNode(cid, "criteria", clabel, cvalue, null);
 
       const edgeLabel = mapCriteriaEdgeLabel(c["тип"] || "");
-      links.push({ source: gNode, target: cn, label: edgeLabel, predicate: edgeLabel });
+      links.push({ source: gNode, target: cn, label: edgeLabel, predicate: edgeLabel, scope: "", scopeName: "" });
     });
 
     (groupObj["подгруппыКритериев"] || []).forEach(sub => processCriteriaGroup(sub, gNode));
@@ -1015,7 +1307,9 @@ function loadGraphFromJSON(graph) {
       source: s,
       target: t,
       predicate: pred,
-      label: lbl
+      label: lbl,
+      scope: l.scope || "",
+      scopeName: l.scopeName || ""
     });
   });
 

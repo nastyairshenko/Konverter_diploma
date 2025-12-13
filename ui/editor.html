@@ -223,6 +223,58 @@
     }
   </style>
 </head>
+<div id="edge-wizard" class="pred-picker hidden">
+  <div class="pred-card">
+    <div class="pred-title">Создание связи</div>
+
+    <div class="pred-row">
+      <label>Контейнер связи</label>
+      <select id="edge-scope">
+        <option value="">(без группы)</option>
+        <option value="группа">группа …</option>
+        <option value="подгруппа">подгруппа …</option>
+      </select>
+    </div>
+
+    <div class="pred-row" id="edge-scope-name-row" style="display:none;">
+      <label>Название</label>
+      <input id="edge-scope-name" placeholder="например: группа критериев / группа методов лечения" />
+    </div>
+
+    <div class="pred-row">
+      <label>Предикат</label>
+      <select id="edge-predicate"></select>
+    </div>
+
+    <div class="pred-actions">
+      <button id="edge-ok">OK</button>
+      <button id="edge-cancel">Отмена</button>
+    </div>
+  </div>
+</div>
+
+<style>
+  .pred-picker.hidden { display:none; }
+  .pred-picker {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.25);
+    display:flex; align-items:center; justify-content:center;
+    z-index: 9999;
+  }
+  .pred-card {
+    width: 520px; background:#fff; border-radius:12px;
+    padding:16px; box-shadow:0 10px 30px rgba(0,0,0,.2);
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+  }
+  .pred-title { font-weight:700; margin-bottom:12px; }
+  .pred-row { display:flex; flex-direction:column; gap:6px; margin-bottom:12px; }
+  .pred-row label { font-size:12px; opacity:.7; }
+  .pred-row select, .pred-row input { padding:8px; border-radius:8px; border:1px solid #ddd; }
+  .pred-actions { display:flex; gap:8px; justify-content:flex-end; }
+  .pred-actions button { padding:8px 12px; border-radius:8px; border:1px solid #ddd; background:#fff; cursor:pointer; }
+  #edge-ok { background:#1976d2; color:#fff; border-color:#1976d2; }
+</style>
+
 <body>
 <div id="sidebar">
   <div id="buttons">

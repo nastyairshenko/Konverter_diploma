@@ -1,0 +1,151 @@
+{
+  "doc": {
+    "id": "",
+    "page": "",
+    "uur": "",
+    "udd": "",
+    "text": ""
+  },
+  "nodes": [
+    {
+      "id": "n_lwv5rx1",
+      "label": "ПН",
+      "value": null,
+      "note": null,
+      "type": "root",
+      "x": 248,
+      "y": -14.5,
+      "w": 120,
+      "h": 40,
+      "collapsed": false
+    },
+    {
+      "id": "n_c24454c",
+      "label": "дети",
+      "value": null,
+      "note": null,
+      "type": "criteria",
+      "x": -57,
+      "y": 203.5,
+      "w": 220,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_770foib",
+      "label": "остеосинтез",
+      "value": null,
+      "note": null,
+      "type": "method",
+      "x": 245,
+      "y": 92,
+      "w": 360,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_sdfacqn",
+      "label": "И",
+      "value": null,
+      "note": null,
+      "type": "logic",
+      "x": 279.5,
+      "y": 204,
+      "w": 42,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_vz4q4vw",
+      "label": "ИЛИ",
+      "value": null,
+      "note": null,
+      "type": "logic",
+      "x": 199,
+      "y": 281.5,
+      "w": 42,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_vdsc5vv",
+      "label": "спицы",
+      "value": null,
+      "note": null,
+      "type": "method",
+      "x": 445.5,
+      "y": 402,
+      "w": 360,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_i8q0m9l",
+      "label": "канюлированные винты",
+      "value": null,
+      "note": null,
+      "type": "method",
+      "x": 36.5,
+      "y": 403,
+      "w": 360,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_e8i7cnh",
+      "label": "стягивающая проволочная петля",
+      "value": null,
+      "note": null,
+      "type": "method",
+      "x": 525,
+      "y": 229.5,
+      "w": 360,
+      "h": 42,
+      "collapsed": false
+    }
+  ],
+  "links": [
+    {
+      "source": "n_770foib",
+      "target": "n_c24454c",
+      "predicate": "критерий пациент",
+      "label": "критерий пациент"
+    },
+    {
+      "source": "n_lwv5rx1",
+      "target": "n_770foib",
+      "predicate": "рекомендуется",
+      "label": "рекомендуется"
+    },
+    {
+      "source": "n_sdfacqn",
+      "target": "n_770foib",
+      "predicate": "",
+      "label": ""
+    },
+    {
+      "source": "n_sdfacqn",
+      "target": "n_vz4q4vw",
+      "predicate": "",
+      "label": ""
+    },
+    {
+      "source": "n_sdfacqn",
+      "target": "n_e8i7cnh",
+      "predicate": "",
+      "label": ""
+    },
+    {
+      "source": "n_vz4q4vw",
+      "target": "n_i8q0m9l",
+      "predicate": "",
+      "label": ""
+    },
+    {
+      "source": "n_vz4q4vw",
+      "target": "n_vdsc5vv",
+      "predicate": "",
+      "label": ""
+    }
+  ]
+}
