@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Редактор графа → TTL → тройки</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: "Segoe UI", system-ui, sans-serif;
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    #sidebar {
+      width: 400px;
+      border-right: 1px solid #ddd;
+      padding: 10px;
+      box-sizing: border-box;
+      background: #fafafa;
+      font-size: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      overflow-y: auto;
+    }
+
+    #buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    #graph {
+      flex: 1;
+      height: 100vh;
+      min-width: 0;
+      position: relative;
+    }
+
+    button {
+      padding: 6px 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      background: #fff;
+      cursor: pointer;
+      width: 100%;
+      box-sizing: border-box;
+      font-size: 13px;
+    }
+
+    button:hover {
+      background: #f0f0f0;
+    }
+
+    #doc-info {
+      padding: 6px 8px;
+      background: #fff;
+      border-radius: 8px;
+      border: 1px solid #e0e0e0;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .doc-section-title {
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .doc-row {
+      margin: 4px 0;
+    }
+
+    .doc-label {
+      font-weight: 600;
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    .doc-input {
+      width: 100%;
+      box-sizing: border-box;
+      font-size: 13px;
+      padding: 3px 5px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
+
+    .doc-rec-text {
+      margin-top: 6px;
+      padding-top: 4px;
+      border-top: 1px solid #eee;
+      font-size: 12px;
+    }
+
+    #rec-text {
+      width: 100%;
+      min-height: 80px;
+      max-height: 200px;
+      overflow-y: auto;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      padding: 4px 6px;
+      white-space: pre-wrap;
+    }
+
+    #rec-text[contenteditable="true"] {
+      background: #fff;
+    }
+
+    #info {
+      font-size: 12px;
+      color: #555;
+      line-height: 1.4;
+      padding: 6px 8px;
+      background: #fff;
+      border-radius: 8px;
+      border: 1px solid #e0e0e0;
+    }
+
+    #svg {
+      width: 100%;
+      height: 100%;
+      background: #ffffff;
+      display: block;
+    }
+
+    svg:active {
+      cursor: grabbing;
+    }
+
+    .pan-bg {
+      fill: url(#grid-pattern);
+    }
+
+    .link {
+      stroke: #ff9800;
+      stroke-width: 1.8px;
+      marker-end: url(#arrowHead);
+      cursor: pointer;
+    }
+
+    .link.selected-edge {
+      stroke-width: 3px;
+      stroke: #e53935;
+    }
+
+    .node rect {
+      stroke-width: 2px;
+      rx: 16;
+      ry: 16;
+    }
+
+    .node text {
+      pointer-events: none;
+      font-size: 11px;
+    }
+
+    .node-type-criteria rect {
+      stroke: #ff9800;
+      fill: #fff8e1;
+      stroke-dasharray: 6 4;
+    }
+
+    .node-type-method rect {
+      stroke: #4caf50;
+      fill: #e8f5e9;
+    }
+
+    .node-type-logic rect {
+      stroke: #ef5350;
+      fill: #ffebee;
+      stroke-dasharray: 5 3;
+    }
+
+    .node-type-root rect {
+      stroke: #7e57c2;
+      fill: #ede7f6;
+    }
+
+    .node text.label {
+      fill: #333;
+    }
+
+    .node text.value-label {
+      fill: #666;
+      font-size: 10px;
+    }
+
+    .node.selected rect {
+      stroke-width: 3px;
+      stroke: #3f51b5;
+    }
+
+    .node.collapsed rect {
+      stroke-dasharray: 2 2;
+    }
+
+    .node:hover rect {
+      filter: drop-shadow(0 0 4px rgba(0,0,0,0.25));
+    }
+
+    .highlight {
+      background: #fff59d;
+      border-radius: 2px;
+      padding: 0 1px;
+    }
+
+    .link-label {
+      font-size: 10px;
+      fill: #444;
+      pointer-events: auto;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .primary {
+      border-color: #2563eb;
+      background: #2563eb;
+      color: #fff;
+      font-weight: 600;
+    }
+
+    .primary:hover {
+      background: #1d4ed8;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ВАЖНО: edge-wizard и его стили должны быть внутри body -->
+  <div id="edge-wizard" class="pred-picker hidden">
+    <div class="pred-card">
+      <div class="pred-title">Создание связи</div>
+
+      <div class="pred-row">
+        <label>Контейнер связи</label>
+        <select id="edge-scope">
+          <option value="">(без группы)</option>
+          <option value="группа">группа …</option>
+          <option value="подгруппа">подгруппа …</option>
+        </select>
+      </div>
+
+      <div class="pred-row" id="edge-scope-name-row" style="display:none;">
+        <label>Название</label>
+        <input id="edge-scope-name" placeholder="например: группа критериев / группа методов лечения" />
+      </div>
+
+      <div class="pred-row">
+        <label>Предикат</label>
+        <select id="edge-predicate"></select>
+      </div>
+
+      <div class="pred-actions">
+        <button id="edge-ok">OK</button>
+        <button id="edge-cancel">Отмена</button>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .pred-picker.hidden { display:none; }
+    .pred-picker {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.25);
+      display:flex; align-items:center; justify-content:center;
+      z-index: 9999;
+    }
+    .pred-card {
+      width: 520px; background:#fff; border-radius:12px;
+      padding:16px; box-shadow:0 10px 30px rgba(0,0,0,.2);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+    }
+    .pred-title { font-weight:700; margin-bottom:12px; }
+    .pred-row { display:flex; flex-direction:column; gap:6px; margin-bottom:12px; }
+    .pred-row label { font-size:12px; opacity:.7; }
+    .pred-row select, .pred-row input { padding:8px; border-radius:8px; border:1px solid #ddd; }
+    .pred-actions { display:flex; gap:8px; justify-content:flex-end; }
+    .pred-actions button { padding:8px 12px; border-radius:8px; border:1px solid #ddd; background:#fff; cursor:pointer; }
+    #edge-ok { background:#1976d2; color:#fff; border-color:#1976d2; }
+  </style>
+
+  <div id="sidebar">
+    <div id="buttons">
+      <h3 style="margin:0 0 4px 0;">Редактор графа</h3>
+
+      <input type="file" id="json-input" accept=".json" style="margin-bottom:6px;">
+
+      <button id="autolayout-btn">Авторазмещение</button>
+      <button id="undo-btn">Отменить последнее действие</button>
+
+      <button id="add-root-btn" style="background:#d6c6f5">Заболевание</button>
+      <button id="add-logic-btn" style="background:#f5b7b1">Правило выбора</button>
+      <button id="add-method-btn" style="background:#c8f1c8">Метод лечения</button>
+      <button id="add-criteria-btn" style="background:#ffe0b2">Критерий</button>
+
+      <button id="edge-mode-btn">Режим стрелки: ВЫКЛ</button>
+      <button id="enlarge-node-btn">Увеличить выбранную вершину</button>
+      <button id="shrink-node-btn">Уменьшить выбранную вершину</button>
+      <button id="delete-selected-btn">Удалить выделенное (вершину/ребро)</button>
+    </div>
+
+    <div id="doc-info">
+      <div class="doc-section-title">Информация о рекомендации</div>
+
+      <div class="doc-row">
+        <label class="doc-label" for="doc-name">Документ</label>
+        <input id="doc-name" class="doc-input" type="text"
+               placeholder="3276 Переломы_надколенника 29.07.25_V.docx" />
+      </div>
+
+      <div class="doc-row">
+        <label class="doc-label" for="doc-page">Страница</label>
+        <input id="doc-page" class="doc-input" type="text" placeholder="20" />
+      </div>
+
+      <div class="doc-row">
+        <label class="doc-label" for="doc-uur">Уровень убедительности (УУР)</label>
+        <input id="doc-uur" class="doc-input" type="text" placeholder="C" />
+      </div>
+
+      <div class="doc-row">
+        <label class="doc-label" for="doc-udd">Уровень достоверности (УДД)</label>
+        <input id="doc-udd" class="doc-input" type="text" placeholder="4" />
+      </div>
+
+      <div class="doc-rec-text">
+        <div class="doc-label">Текст рекомендации</div>
+        <div id="rec-text" contenteditable="true"></div>
+      </div>
+    </div>
+
+    <div id="disease-info" style="margin-top:8px; padding:6px 8px; background:#fff; border-radius:8px; border:1px solid #e0e0e0;">
+      <div class="doc-section-title">Информация о заболевании (фиолетовая вершина)</div>
+
+      <div class="doc-row">
+        <label class="doc-label" for="disease-mkb">Код МКБ</label>
+        <input id="disease-mkb" class="doc-input" type="text" placeholder="например: S82.0" />
+      </div>
+
+      <div class="doc-row">
+        <label class="doc-label" for="rec-type">Тип рекомендации</label>
+        <input id="rec-type" class="doc-input" type="text" placeholder="например: Консервативное лечение" />
+      </div>
+    </div>
+
+    <div id="info">
+      <b>Управление графом:</b><br>
+      • Колесо мыши – zoom<br>
+      • Зажать ЛКМ по фону – панорамирование<br>
+      • Перетаскивать вершины мышкой<br>
+      • «Режим стрелки»: клик по первой вершине → клик по второй – проводится ребро<br>
+      • Двойной клик по вершине – переименовать / изменить значение<br>
+      • Двойной клик по подписи ребра – выбрать предикат<br>
+      • Delete – удалить выделенную вершину/стрелку<br>
+      • Ctrl+Z – отмена последнего действия<br>
+    </div>
+
+    <div id="export-block">
+      <button id="clear-btn">Очистить канвас</button>
+      <button id="save-graph-json-btn">Сохранить JSON </button>
+      <button id="generate-btn" class="primary" style="margin-top:6px;">
+        Сформировать тройки (TTL + JSON) через backend
+      </button>
+      <input type="file" id="graph-file-to-backend" accept=".json" style="margin-top:6px;">
+      <button id="graph-file-to-ttl-btn">TTL + triples из JSON-файла</button>
+      <button id="export-xlsx-btn" style="margin-top:6px;">
+        Выгрузить тройки в XLSX через backend
+      </button>
+    </div>
+  </div>
+
+  <div id="graph">
+    <svg id="svg"></svg>
+  </div>
+
+  <!-- d3 + xlsx по CDN -->
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="editor_pn.js"></script>
+</body>
+</html>

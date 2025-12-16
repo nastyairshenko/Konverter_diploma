@@ -777,19 +777,6 @@ if (delBtn) delBtn.onclick = deleteSelected;
 const undoBtn = document.getElementById("undo-btn");
 if (undoBtn) undoBtn.onclick = undo;
 
-// edge mode
-const edgeModeBtn2 = document.getElementById("edge-mode-btn");
-if (edgeModeBtn2) {
-  edgeModeBtn2.addEventListener("click", () => {
-    edgeMode = !edgeMode;
-    edgeStartNode = null;
-    selectedNode = null;
-    selectedEdge = null;
-    redrawSelection();
-    updateEdgeModeButton();
-  });
-}
-
 // ======= авторазмещение (ЭТАЛОН + анти-наложения) =======
 // Основа взята из konverter.html / rec1_redactor.html (DFS + уровни),
 // но улучшена: 1) считаем "ширину поддерева" 2) раскладываем детей по полосам
@@ -999,7 +986,6 @@ function autoLayoutKonverter(rootId, saveHistory = false) {
   updateGraph();
 }
 
-
 const autolayoutBtn = document.getElementById("autolayout-btn");
 if (autolayoutBtn) autolayoutBtn.onclick = () => autoLayoutKonverter(rootNodeId || nodes[0]?.id, true);
 
@@ -1096,23 +1082,22 @@ function downloadFile(filename, content, mime) {
   URL.revokeObjectURL(url);
 }
 
-const saveGraphBtn = document.getElementById("save-graph-json-btn");
-if (saveGraphBtn) {
-  saveGraphBtn.onclick = () => {
-    if (!nodes.length) {
-      alert("Сначала нарисуйте или загрузите граф.");
-      return;
-    }
-    const graph = buildGraphJSON();
-    const filename =
-      "graph_" +
-      (graph.doc.id || "rec") +
-      "_" +
-      new Date().toISOString().replace(/[:.]/g, "-") +
-      ".json";
-    downloadFile(filename, JSON.stringify(graph, null, 2), "application/json;charset=utf-8");
+function genStableId(prefix = "id") {
+  if (typeof crypto !== "undefined" && crypto.randomUUID) {
+    return `${prefix}_${crypto.randomUUID()}`;
+  }
+  // fallback (если randomUUID недоступен)
+  return `${prefix}_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+}
+
+function normalizeToGraphOnly(payload) {
+  return {
+    doc: payload.doc || { id:"", page:"", uur:"", udd:"", text:"" },
+    nodes: Array.isArray(payload.nodes) ? payload.nodes : [],
+    links: Array.isArray(payload.links) ? payload.links : []
   };
 }
+
 
 // ======= PN.json -> граф (как konverter) =======
 function buildGraphFromPN(pnData) {
@@ -1120,9 +1105,8 @@ function buildGraphFromPN(pnData) {
   const diseaseKey = Object.keys(pnData[docKey])[0];
   const disease = pnData[docKey][diseaseKey];
 
-  const rec = disease["рекомендации"][0];
+  const rec = (disease.рекомендации || [])[0] || {};
   const gm = rec["группаМетодовЛечения"];
-
   const docName = document.getElementById("doc-name");
   const docPage = document.getElementById("doc-page");
   const docUur = document.getElementById("doc-uur");
@@ -1160,7 +1144,21 @@ function buildGraphFromPN(pnData) {
     return n;
   }
 
-  const root = addNode("root_PN", "root", "ПН", null, null);
+  const root = addNode("root_PN", "root", diseaseKey, null, null);
+  // PN метаданные (чтобы PN -> граф -> PN был 1-в-1)
+  root.pn = root.pn || {};
+  root.pn.diseaseKey = diseaseKey;
+  root.pn.recId = (rec.id && String(rec.id).trim()) ? String(rec.id).trim() : genStableId("rec");
+  root.mkb = disease["кодМКБ"] || root.mkb || "";
+  root.recType = rec["тип"] || root.recType || "";
+  root.pn.methodsGroupId = (gm?.id && String(gm.id).trim()) ? String(gm.id).trim() : genStableId("methodsGroup");
+  const cg0 = gm?.["группаКритериев"] || null;
+  root.pn.criteriaGroupId = (cg0?.id && String(cg0.id).trim()) ? String(cg0.id).trim() : genStableId("criteriaGroup");
+  // синхронизируем поля UI
+  const mkbEl = document.getElementById("disease-mkb");
+  const rtEl = document.getElementById("rec-type");
+  if (mkbEl) mkbEl.value = root.mkb || "";
+  if (rtEl) rtEl.value = root.recType || "";
   rootNodeId = root.id;
 
   const subs = gm["подгруппыМетодов"] || [];
@@ -1349,36 +1347,8 @@ async function backendToTriples(graph) {
   return await resp.json();
 }
 
-const generateBtn = document.getElementById("generate-btn");
-if (generateBtn) {
-  generateBtn.onclick = async () => {
-    if (!nodes.length) {
-      alert("Сначала нарисуйте или загрузите граф.");
-      return;
-    }
-    try {
-      const graph = buildGraphJSON();
-      const ttl = await backendToTTL(graph);
-      const triples = await backendToTriples(graph);
 
-      const payload = {
-        doc_id: graph.doc.id,
-        page: graph.doc.page,
-        uur: graph.doc.uur,
-        udd: graph.doc.udd,
-        text: graph.doc.text,
-        triples,
-        graph
-      };
 
-      downloadFile("recommendation.ttl", ttl, "text/turtle;charset=utf-8");
-      downloadFile("triples.json", JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
-    } catch (e) {
-      console.error(e);
-      alert(e.message || "Ошибка при работе с backend");
-    }
-  };
-}
 
 const exportXlsxBtn = document.getElementById("export-xlsx-btn");
 if (exportXlsxBtn) {
@@ -1387,28 +1357,868 @@ if (exportXlsxBtn) {
       alert("Сначала нарисуйте или загрузите граф.");
       return;
     }
-    try {
-      const graph = buildGraphJSON();
-      const resp = await fetch(`${API_BASE}/api/graph/to-triples-xlsx`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(graph)
-      });
-      if (!resp.ok) throw new Error("Ошибка backend при формировании XLSX");
 
-      const blob = await resp.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = (graph.doc.id || "triples") + ".xlsx";
-      a.click();
-      URL.revokeObjectURL(url);
+    try {
+      const graphWH = buildGraphWithHierarchyJSON();
+      const graphOnly = normalizeToGraphOnly(graphWH);
+      const triples = buildTriplesFromGraph(graphOnly);
+
+      const rows = [
+        ["объект", "субъект", "предикат"],
+        ...triples.map(t => [t.объект, t.субъект, t.предикат])
+      ];
+
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.aoa_to_sheet(rows);
+      XLSX.utils.book_append_sheet(wb, ws, "triples");
+
+      XLSX.writeFile(wb, (graphOnly.doc.id || "triples") + ".xlsx");
     } catch (e) {
       console.error(e);
-      alert(e.message || "Ошибка при скачивании XLSX");
+      alert(e.message || "Ошибка при выгрузке XLSX");
     }
   };
 }
 
+
 // старт
 updateGraph();
+
+
+
+// ======= EXPORT: PN.json (иерархия как в примере PN) =======
+
+function logicLabelToRule(lbl) {
+  const s = (lbl || "").trim().toUpperCase();
+  if (s === "ИЛИ" || s === "ANY") return "ANY";
+  if (s === "И" || s === "ALL") return "ALL";
+  if (s === "НЕТ" || s === "NOT") return "NOT";
+  return "ANY";
+}
+
+function predicateToPNCriteriaType(pred) {
+  const p = (pred || "").trim().toLowerCase();
+  if (!p) return "";
+  if (p.includes("критерий пациент")) return "КритерийПациент";
+  if (p.includes("критерий симптом")) return "КритерийСимптом";
+  if (p.includes("критерий время")) return "КритерийВремя";
+  if (p.includes("критерий возмож")) return "КритерийВозможность";
+  if (p === "для") return "для";
+  if (p === "при") return "при";
+  return pred || "";
+}
+
+// helper: build outgoing index + link lookup
+function buildAdjacency() {
+  const out = new Map();
+  const linkByST = new Map();
+  nodes.forEach(n => out.set(n.id, []));
+  links.forEach(l => {
+    const s = l.source?.id, t = l.target?.id;
+    if (!s || !t) return;
+    if (!out.has(s)) out.set(s, []);
+    out.get(s).push(t);
+    linkByST.set(s + "->" + t, l);
+  });
+  return { out, linkByST };
+}
+
+// choose ONE parent per node (PN is hierarchical)
+function buildPrimaryTree(rootId) {
+  const idMap = rebuildIdMap();
+  const incoming = new Map();
+  nodes.forEach(n => incoming.set(n.id, []));
+  links.forEach(l => {
+    const s = l.source?.id, t = l.target?.id;
+    if (!s || !t) return;
+    incoming.get(t)?.push(s);
+  });
+
+  function parentRank(pid) {
+    const n = idMap.get(pid);
+    if (!n) return 999;
+    if (n.type === "root") return 0;
+    if (n.type === "logic") return 1;
+    if (n.type === "method") return 2;
+    if (n.type === "criteria") return 3;
+    return 10;
+  }
+
+  const parentOf = new Map();
+  nodes.forEach(n => {
+    if (n.id === rootId) return;
+    const ps = (incoming.get(n.id) || []).filter(x => idMap.has(x));
+    if (!ps.length) return;
+    ps.sort((a, b) => parentRank(a) - parentRank(b));
+    parentOf.set(n.id, ps[0]);
+  });
+
+  const childrenOf = new Map();
+  nodes.forEach(n => childrenOf.set(n.id, []));
+  parentOf.forEach((p, c) => {
+    if (!childrenOf.get(p).includes(c)) childrenOf.get(p).push(c);
+  });
+
+  return { idMap, parentOf, childrenOf };
+}
+
+function buildPNJSONFromCanvas() {
+  if (!nodes.length) return null;
+
+  const graph = buildGraphJSON(); // doc fields from sidebar
+  const docKey = (graph.doc.id || "document").trim() || "document";
+
+  const { out, linkByST } = buildAdjacency();
+
+  // find root node
+  const root = nodes.find(n => n.type === "root") || nodes[0];
+  const rootId = root?.id;
+  const diseaseKey = (root?.label || "Заболевание").trim() || "Заболевание";
+
+  // build primary tree for hierarchy decisions
+  const { idMap, childrenOf } = buildPrimaryTree(rootId);
+
+  // find "start method container": edge root -> method with predicate "рекомендуется" (preferred)
+  const rootChildren = (childrenOf.get(rootId) || []).map(id => idMap.get(id)).filter(Boolean);
+  let startMethod = null;
+  for (const ch of rootChildren) {
+    if (ch.type !== "method") continue;
+    const l = linkByST.get(rootId + "->" + ch.id);
+    const pred = (l?.predicate || l?.label || "").toLowerCase();
+    if (pred.includes("рекомендуется")) { startMethod = ch; break; }
+  }
+  if (!startMethod) startMethod = rootChildren.find(n => n.type === "method") || null;
+
+  // collect method descendants (exclude the container itself)
+  function collectDescendantMethods(containerId) {
+    const res = [];
+    const st = [containerId];
+    const seen = new Set();
+    while (st.length) {
+      const cur = st.pop();
+      if (!cur || seen.has(cur)) continue;
+      seen.add(cur);
+      const kids = (childrenOf.get(cur) || []);
+      for (const k of kids) {
+        const kn = idMap.get(k);
+        if (!kn) continue;
+        if (kn.type === "criteria") continue; // criteria handled separately
+        if (kn.type === "method" && kn.id !== containerId) res.push(kn);
+        // go through logic and method nodes to reach methods below
+        if (kn.type === "logic" || kn.type === "method") st.push(kn.id);
+      }
+    }
+    // unique by id, stable
+    const seenIds = new Set();
+    return res.filter(m => (seenIds.has(m.id) ? false : (seenIds.add(m.id), true)));
+  }
+
+  // subgroup rule: first logic child under container, else ANY
+  function subgroupRule(containerId) {
+    const kids = (childrenOf.get(containerId) || []).map(id => idMap.get(id)).filter(Boolean);
+    const lg = kids.find(n => n.type === "logic");
+    return logicLabelToRule(lg?.label || "ИЛИ");
+  }
+
+  const subgroups = [];
+  if (startMethod) {
+    const ms = collectDescendantMethods(startMethod.id);
+    subgroups.push({
+      id: (g.pn?.id && String(g.pn.id).trim()) ? String(g.pn.id).trim() : genStableId("subMethods") + (startMethod.id || "1"),
+      правилоВыбора: subgroupRule(startMethod.id),
+      методыЛечения: ms.map(m => ({ id: m.id, label: m.label || m.id }))
+    });
+  } else {
+    // fallback: all methods directly under root as one subgroup
+    const ms = rootChildren.filter(n => n.type === "method");
+    subgroups.push({
+      id: "подгруппаМетодов_1",
+      правилоВыбора: "ANY",
+      методыЛечения: ms.map(m => ({ id: m.id, label: m.label || m.id }))
+    });
+  }
+
+  // ===== Criteria group builder (nested like PN where possible) =====
+  function buildCriteriaGroupFromLogic(logicId) {
+    const lnNode = idMap.get(logicId);
+    const ln = idMap.get(logicId);
+    const kids = (childrenOf.get(logicId) || []).map(id => idMap.get(id)).filter(Boolean);
+
+    const group = {
+      id: (ln?.pn?.id && String(ln.pn.id).trim()) ? String(ln.pn.id).trim() : (genStableId("subCriteria") + "_" + logicId),
+      правилоВыбора: logicLabelToRule(ln?.label || "И"),
+      критерии: [],
+      подгруппыКритериев: []
+    };
+
+    for (const k of kids) {
+      const lnk = linkByST.get(logicId + "->" + k.id);
+      const pred = (lnk?.predicate || lnk?.label || "").trim();
+
+      if (k.type === "criteria") {
+        const c = { id: k.id, тип: predicateToPNCriteriaType(pred), имя: (k.label || k.id) };
+        if (k.value != null && String(k.value).trim() !== "") c.значение = String(k.value);
+        group.критерии.push(c);
+      } else if (k.type === "logic") {
+        group.подгруппыКритериев.push(buildCriteriaGroupFromLogic(k.id));
+      }
+    }
+    return group;
+  }
+
+  // choose criteria root:
+  // 1) if there's a logic node under the startMethod subtree that has criteria children, use it
+  function findLogicWithCriteria(startId) {
+    const st = [startId];
+    const seen = new Set();
+    while (st.length) {
+      const cur = st.pop();
+      if (!cur || seen.has(cur)) continue;
+      seen.add(cur);
+      const kids = (childrenOf.get(cur) || []).map(id => idMap.get(id)).filter(Boolean);
+      for (const k of kids) {
+        if (k.type === "criteria") continue;
+        if (k.type === "logic") {
+          // does this logic have direct criteria child?
+          const lk = (childrenOf.get(k.id) || []).map(id => idMap.get(id)).filter(Boolean);
+          if (lk.some(x => x.type === "criteria")) return k.id;
+          st.push(k.id);
+        } else if (k.type === "method") {
+          st.push(k.id);
+        }
+      }
+    }
+    return null;
+  }
+
+  const critLogicId = startMethod ? findLogicWithCriteria(startMethod.id) : null;
+
+  // direct criteria linked from the startMethod (or root) -> put into top group
+  function collectDirectCriteria(fromId) {
+    const arr = [];
+    const kids = (childrenOf.get(fromId) || []).map(id => idMap.get(id)).filter(Boolean);
+    for (const k of kids) {
+      if (k.type !== "criteria") continue;
+      const lnk = linkByST.get(fromId + "->" + k.id);
+      const pred = (lnk?.predicate || lnk?.label || "").trim();
+      const c = { id: k.id, тип: predicateToPNCriteriaType(pred), имя: (k.label || k.id) };
+      if (k.value != null && String(k.value).trim() !== "") c.значение = String(k.value);
+      arr.push(c);
+    }
+    return arr;
+  }
+
+  const topCriteria = [];
+  if (startMethod) topCriteria.push(...collectDirectCriteria(startMethod.id));
+  else if (rootId) topCriteria.push(...collectDirectCriteria(rootId));
+
+  const criteriaGroup = {
+    id: (root.pn?.criteriaGroupId || genStableId("criteriaGroup")),
+    правилоВыбора: "ALL",
+    критерии: topCriteria,
+    подгруппыКритериев: []
+  };
+
+  if (critLogicId) {
+    // логические критерии как вложенные подгруппы
+    criteriaGroup.подгруппыКритериев.push(buildCriteriaGroupFromLogic(critLogicId));
+  }
+
+  // Recommendation + top PN structure
+  const pn = {
+    [docKey]: {
+      [diseaseKey]: {
+        кодМКБ: "",
+        рекомендации: [
+          {
+            id: (root.pn?.recId || genStableId("rec")),
+            тип: "",
+            УДД: graph.doc.udd || "",
+            УУР: graph.doc.uur || "",
+            номерСтраницы: graph.doc.page || "",
+            оригинальныйТекст: graph.doc.text || "",
+            группаМетодовЛечения: {
+              id: (root.pn?.methodsGroupId || genStableId("methodsGroup")),
+              подгруппыМетодов: subgroups,
+              группаКритериев: criteriaGroup
+            }
+          }
+        ]
+      }
+    }
+  };
+
+  return pn;
+}
+
+const savePnBtn = document.getElementById("save-pn-json-btn");
+if (savePnBtn) {
+  savePnBtn.onclick = () => {
+    if (!nodes.length) {
+      alert("Сначала нарисуйте или загрузите граф.");
+      return;
+    }
+    const pn = buildPNJSONFromCanvas();
+    downloadFile("PN.json", JSON.stringify(pn, null, 2), "application/json;charset=utf-8");
+  };
+}
+
+
+function buildPNJSONFromCanvas_v2() {
+  if (!nodes.length) return null;
+
+  // doc
+  const docId = (document.getElementById("doc-name")?.value || "").trim();
+  const page = (document.getElementById("doc-page")?.value || "");
+  const uur = (document.getElementById("doc-uur")?.value || "");
+  const udd = (document.getElementById("doc-udd")?.value || "");
+  const text = (recTextEl ? (recTextEl.innerText || "") : "");
+
+  const docKey = docId || "document";
+
+  const idMap = rebuildIdMap();
+  const norm = (s) => (s || "").trim();
+  const up = (s) => norm(s).toUpperCase();
+
+  // root
+  const root = nodes.find(n => n.type === "root") || nodes[0];
+  if (!root) return null;
+  const diseaseKey = norm(root.label) || "Заболевание";
+
+  // edge lookup + outgoing
+  const out = new Map();
+  const linkByST = new Map();
+  nodes.forEach(n => out.set(n.id, []));
+  links.forEach(l => {
+    const s = l.source?.id, t = l.target?.id;
+    if (!s || !t) return;
+    if (!out.has(s)) out.set(s, []);
+    out.get(s).push(t);
+    linkByST.set(s + "->" + t, l);
+  });
+
+  const getPred = (s, t) => {
+    const l = linkByST.get(s + "->" + t);
+    return norm(l?.predicate || l?.label || "");
+  };
+
+  function logicLabelToRule(lbl) {
+    const s = up(lbl);
+    if (s === "ИЛИ" || s === "ANY") return "ANY";
+    if (s === "И" || s === "ALL") return "ALL";
+    if (s === "НЕТ" || s === "NOT") return "NOT";
+    return "ANY";
+  }
+
+  function predicateToPNCriteriaType(pred) {
+    const p = norm(pred).toLowerCase();
+    if (!p) return "";
+    if (p.includes("критерий пациент")) return "КритерийПациент";
+    if (p.includes("критерий симптом")) return "КритерийСимптом";
+    if (p.includes("критерий время")) return "КритерийВремя";
+    if (p.includes("критерий возмож")) return "КритерийВозможность";
+    if (p === "для") return "для";
+    if (p === "при") return "при";
+    return pred || "";
+  }
+
+  // 1) root -> (logic)? допускаем 0 или 1 логический узел под заболеванием
+  const rootKids = (out.get(root.id) || []).map(id => idMap.get(id)).filter(Boolean);
+  const rootLogicKids = rootKids.filter(n => n.type === "logic");
+
+  if (rootLogicKids.length > 1) {
+    alert("Пока поддерживается либо 0, либо 1 красная вершина (правило выбора) сразу под заболеванием.");
+    return null;
+  }
+
+  const methodsChoice = (rootLogicKids.length === 1) ? rootLogicKids[0] : null;
+
+  // 2) Методы лечения: все зелёные достижимые из methodsChoice, иначе напрямую от root
+  function collectMethodsFrom(startLogicId) {
+    const res = [];
+    const st = [startLogicId];
+    const seen = new Set();
+
+    while (st.length) {
+      const cur = st.pop();
+      if (!cur || seen.has(cur)) continue;
+      seen.add(cur);
+
+      const kids = (out.get(cur) || []).map(id => idMap.get(id)).filter(Boolean);
+      for (const k of kids) {
+        if (k.type === "method") res.push(k);
+        if (k.type === "logic") st.push(k.id);
+      }
+    }
+
+    const ids = new Set();
+    return res.filter(m => (ids.has(m.id) ? false : (ids.add(m.id), true)));
+  }
+
+  const methods = methodsChoice
+    ? collectMethodsFrom(methodsChoice.id)
+    : rootKids.filter(n => n.type === "method");
+
+  const methodsRule = methodsChoice
+    ? logicLabelToRule(methodsChoice.label || "ИЛИ")
+    : "ANY";
+
+  // метаданные связи parent->method (edgeLabel) берём там, где реально висит метод
+  function methodParentAndEdge(methodId) {
+    // найдём любой входящий родитель (логика/корень) в рамках out/linkByST
+    // (в PN всё равно иерархия, так что достаточно первого)
+    for (const [key, l] of linkByST.entries()) {
+      const [s, t] = key.split("->");
+      if (t === methodId) {
+        return { parentId: s, edgeLabel: norm(l?.predicate || l?.label || "") };
+      }
+    }
+    return { parentId: "", edgeLabel: "" };
+  }
+
+  const subgroups = [{
+    id: (methodsChoice?.pn?.id && String(methodsChoice.pn.id).trim())
+      ? String(methodsChoice.pn.id).trim()
+      : genStableId("subMethods"),
+
+    правилоВыбора: methodsRule,
+
+    // ✅ сохраняем и label, и type, и надпись на связи
+    методыЛечения: methods.map(m => {
+      const info = methodParentAndEdge(m.id);
+      return {
+        id: m.id,
+        label: m.label || m.id,
+        nodeType: m.type || "method",
+        edgeLabel: info.edgeLabel || ""   // например "используется"
+      };
+    })
+  }];
+
+  // 3) Критерии: строим PN-группы из логики
+  function buildCriteriaGroupFromLogic(logicId) {
+    const lnNode = idMap.get(logicId); // ✅ важно: чтобы не было lnNode is not defined
+    const ln = lnNode;
+
+    const grp = {
+      id: (lnNode?.pn?.id && String(lnNode.pn.id).trim())
+        ? String(lnNode.pn.id).trim()
+        : (genStableId("subCriteria") + "_" + logicId),
+
+      правилоВыбора: logicLabelToRule(ln?.label || "И"),
+      критерии: [],
+      подгруппыКритериев: []
+    };
+
+    const kids = (out.get(logicId) || []).map(id => idMap.get(id)).filter(Boolean);
+
+    for (const k of kids) {
+      const edgeLbl = getPred(logicId, k.id); // надпись на ребре logic -> child
+
+      if (k.type === "criteria") {
+        // ✅ сохраняем label/type ребра и label/type вершины
+        const c = {
+          id: k.id,
+          имя: k.label || k.id,
+          nodeType: k.type || "criteria",
+          edgeLabel: edgeLbl || "",                    // например "критерий пациент"
+          тип: predicateToPNCriteriaType(edgeLbl || "") // как раньше (PN-поле)
+        };
+
+        if (k.value != null && String(k.value).trim() !== "") c.значение = String(k.value);
+        if (k.note != null && String(k.note).trim() !== "") c.уточнение = String(k.note);
+
+        grp.критерии.push(c);
+
+      } else if (k.type === "logic") {
+        // ✅ можно тоже сохранить edgeLabel у подгруппы (если хочешь)
+        const sub = buildCriteriaGroupFromLogic(k.id);
+        sub.edgeLabel = edgeLbl || "";        // надпись на связи logic -> logic (если есть)
+        sub.nodeType = k.type || "logic";     // тип дочерней вершины
+        sub.label = k.label || "";            // label дочерней вершины
+        grp.подгруппыКритериев.push(sub);
+      }
+    }
+
+    return grp;
+  }
+
+  const criteriaGroup = {
+    id: (root.pn?.criteriaGroupId || genStableId("criteriaGroup")),
+    правилоВыбора: "ALL",
+    критерии: [],
+    подгруппыКритериев: methodsChoice ? [buildCriteriaGroupFromLogic(methodsChoice.id)] : []
+  };
+
+  // 4) Финальный PN
+  return {
+    [docKey]: {
+      [diseaseKey]: {
+        кодМКБ: root.mkb || "",
+        рекомендации: [{
+          id: (root.pn?.recId || genStableId("rec")),
+          тип: root.recType || "",
+          УДД: udd || "",
+          УУР: uur || "",
+          номерСтраницы: page || "",
+          оригинальныйТекст: text || "",
+          группаМетодовЛечения: {
+            id: (root.pn?.methodsGroupId || genStableId("methodsGroup")),
+            подгруппыМетодов: subgroups,
+            группаКритериев: criteriaGroup
+          }
+        }]
+      }
+    }
+  };
+}
+
+
+
+(function() {
+  const btn = document.getElementById("save-graph-json-btn");
+  if (!btn) return;
+
+  btn.onclick = () => {
+    if (!nodes.length) {
+      alert("Сначала нарисуйте или загрузите граф.");
+      return;
+    }
+    const payload = buildGraphWithHierarchyJSON();
+    downloadFile("graph_with_hierarchy.json", JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+  };
+})();
+
+
+
+function buildGraphWithHierarchyJSON() {
+  const graph = buildGraphJSON();
+
+  // строим "id" для link как "source->target"
+  const linkId = (l) => {
+    const s = typeof l.source === "object" ? l.source.id : l.source;
+    const t = typeof l.target === "object" ? l.target.id : l.target;
+    return `${s}->${t}`;
+  };
+
+  // groups: группируем связи по (scope + scopeName + owner/source)
+  // чтобы было понятно "к какой группе относится критерий/метод"
+  const groupsMap = new Map();
+
+  for (const l of graph.links) {
+    const scope = (l.scope || "").trim();
+    const scopeName = (l.scopeName || "").trim();
+
+    // В иерархии сохраняем только контейнерные ребра: где указаны группа/подгруппа
+    if (!(scope === "группа" || scope === "подгруппа")) continue;
+
+    const ownerId = l.source;
+    const key = `${scope}||${scopeName}||${ownerId}`;
+
+    if (!groupsMap.has(key)) {
+      groupsMap.set(key, {
+        id: `grp_${groupsMap.size + 1}`,
+        scope,
+        name: scopeName,
+        ownerId,
+        linkIds: [],
+        nodeIds: []
+      });
+    }
+
+    const g = groupsMap.get(key);
+    g.linkIds.push(linkId(l));
+    g.nodeIds.push(l.target);
+  }
+
+  // чистим дубли
+  const groups = [...groupsMap.values()].map(g => ({
+    ...g,
+    linkIds: [...new Set(g.linkIds)],
+    nodeIds: [...new Set(g.nodeIds)]
+  }));
+
+  const root = graph.nodes.find(n => n.type === "root") || graph.nodes[0] || null;
+
+  return {
+    ...graph,
+    hierarchy: {
+      rootId: root ? root.id : null,
+      groups
+    }
+  };
+}
+
+
+function normalizeToGraphOnly(payload) {
+  // поддержка: {doc,nodes,links,hierarchy...} и любые лишние поля
+  return {
+    doc: payload.doc || { id:"", page:"", uur:"", udd:"", text:"" },
+    nodes: Array.isArray(payload.nodes) ? payload.nodes : [],
+    links: Array.isArray(payload.links) ? payload.links : []
+  };
+}
+
+(function () {
+  const fileEl = document.getElementById("graph-file-to-backend");
+  const btnEl = document.getElementById("graph-file-to-ttl-btn");
+  if (!fileEl || !btnEl) return;
+
+  let lastPayload = null;
+
+  fileEl.addEventListener("change", (e) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    const r = new FileReader();
+    r.onload = () => {
+      try {
+        lastPayload = JSON.parse(r.result);
+        alert("JSON загружен. Можно конвертировать в TTL/тройки.");
+      } catch (err) {
+        console.error(err);
+        alert("Ошибка чтения JSON: " + err);
+      }
+    };
+    r.readAsText(f);
+  });
+
+  btnEl.onclick = async () => {
+    if (!lastPayload) {
+      alert("Сначала выберите JSON-файл.");
+      return;
+    }
+    try {
+      const graph = normalizeToGraphOnly(lastPayload);
+
+      const ttl = await backendToTTL(graph);         // уже есть у тебя :contentReference[oaicite:2]{index=2}
+      const triples = await backendToTriples(graph); // уже есть у тебя :contentReference[oaicite:3]{index=3}
+
+      downloadFile("recommendation.ttl", ttl, "text/turtle;charset=utf-8");
+      downloadFile("triples.json", JSON.stringify({ graph, triples }, null, 2), "application/json;charset=utf-8");
+    } catch (e) {
+      console.error(e);
+      alert(e.message || "Ошибка при работе с backend");
+    }
+  };
+})();
+
+
+// ======= TRIPLES (правильные по graph) =======
+
+function buildTriplesFromGraph(graph) {
+  const nodesById = new Map((graph.nodes || []).map(n => [n.id, n]));
+  const labelOf = (id) => (nodesById.get(id)?.label || id || "").trim();
+  const typeOf = (id) => (nodesById.get(id)?.type || "").trim();
+
+  // outgoing links by source
+  const out = new Map();
+  (graph.links || []).forEach(l => {
+    if (!out.has(l.source)) out.set(l.source, []);
+    out.get(l.source).push(l);
+  });
+
+  const triples = [];
+
+  // 0) диагноз: (ПН -> пациенты -> диагноз)
+  // если не нужно — просто удали этот блок
+  const root = (graph.nodes || []).find(n => n.type === "root") || (graph.nodes || [])[0];
+  if (root) {
+    triples.push({ объект: labelOf(root.id), субъект: "пациенты", предикат: "диагноз" });
+  }
+
+  // helper: find container method for any node (logic or method)
+  // Идея: поднимаемся вверх по входящим ребрам, пока не найдём method,
+  // который "рекомендуется" от root (или просто первый method)
+  const incoming = new Map();
+  (graph.links || []).forEach(l => {
+    if (!incoming.has(l.target)) incoming.set(l.target, []);
+    incoming.get(l.target).push(l);
+  });
+
+  function findRecommendedMethodAbove(startId) {
+    const seen = new Set();
+    const q = [startId];
+    while (q.length) {
+      const cur = q.shift();
+      if (!cur || seen.has(cur)) continue;
+      seen.add(cur);
+
+      const inc = incoming.get(cur) || [];
+      for (const l of inc) {
+        const s = l.source;
+        if (typeOf(s) === "method") {
+          // если этот method "рекомендуется" от root — приоритет
+          const inc2 = incoming.get(s) || [];
+          const hasRec = inc2.some(x => (x.predicate || x.label || "").trim().toLowerCase().includes("рекомендуется"));
+          if (hasRec) return s;
+          // иначе запомним как fallback
+          return s;
+        }
+        // идём дальше вверх
+        q.push(s);
+      }
+    }
+    return null;
+  }
+
+  // 1) Рекомендуется: root -> method  ==>  (method, root, рекомендуется)
+  (graph.links || []).forEach(l => {
+    const pred = (l.predicate || l.label || "").trim();
+    if (!pred) return;
+
+    if (pred.toLowerCase().includes("рекомендуется")) {
+      triples.push({
+        объект: labelOf(l.target),
+        субъект: labelOf(l.source),
+        предикат: "рекомендуется"
+      });
+    }
+  });
+
+  // 2) Критерии: method -> criteria (критерий пациент/симптом/время/возможность/для/при)
+  (graph.links || []).forEach(l => {
+    const pred = (l.predicate || l.label || "").trim();
+    if (!pred) return;
+
+    const sType = typeOf(l.source);
+    const tType = typeOf(l.target);
+
+    if (tType === "criteria" && pred.toLowerCase().includes("критерий")) {
+      // ожидаемый формат: критерий (объект) -> метод (субъект)
+      triples.push({
+        объект: labelOf(l.target),
+        субъект: labelOf(l.source),
+        предикат: pred
+      });
+    }
+  });
+
+  // 3) Используется: все method-листья под логикой должны ссылаться на "контейнерный method"
+  // Пример из твоего graph: n_sdfacqn(И) -> n_770foib(остеосинтез) используется (контейнер)
+  // А n_vz4q4vw(ИЛИ) -> методы используется (они должны стать: метод -> остеосинтез используется)
+  function collectLeafMethodsUnder(nodeId) {
+    const seen = new Set();
+    const res = new Set();
+    const st = [nodeId];
+    while (st.length) {
+      const cur = st.pop();
+      if (!cur || seen.has(cur)) continue;
+      seen.add(cur);
+
+      const links = out.get(cur) || [];
+      for (const l of links) {
+        const pred = (l.predicate || l.label || "").trim().toLowerCase();
+        if (!pred.includes("используется")) continue;
+
+        const tgt = l.target;
+        const tType = typeOf(tgt);
+        if (tType === "method") res.add(tgt);
+        if (tType === "logic") st.push(tgt);
+      }
+    }
+    return [...res];
+  }
+
+  // для каждого логического узла найдём его container method и добавим "используется" для всех листьев
+  (graph.nodes || []).filter(n => n.type === "logic").forEach(ln => {
+    const containerMethodId = findRecommendedMethodAbove(ln.id);
+    if (!containerMethodId) return;
+
+    const leaves = collectLeafMethodsUnder(ln.id);
+    leaves.forEach(mId => {
+      // не дублируем: если уже есть прямой "method->criteria" и т.п. — это другое
+      triples.push({
+        объект: labelOf(mId),
+        субъект: labelOf(containerMethodId),
+        предикат: "используется"
+      });
+    });
+  });
+
+  // 4) Логические связи между методами:
+  // для каждой logic-вершины берём дочерние "ветки" (method или logic),
+  // собираем листья, и делаем связи МЕЖДУ ветками (кросс-продукт)
+  function logicPredicate(label) {
+    const s = (label || "").trim().toUpperCase();
+    if (s === "И") return "связь И";
+    if (s === "ИЛИ") return "связь ИЛИ";
+    if (s === "НЕТ") return "связь НЕТ";
+    return null;
+  }
+
+  function leafGroupsOfLogic(logicId) {
+    const links = out.get(logicId) || [];
+    const groups = [];
+    for (const l of links) {
+      const pred = (l.predicate || l.label || "").trim().toLowerCase();
+      if (!pred.includes("используется")) continue;
+
+      const t = l.target;
+      const tType = typeOf(t);
+      if (tType === "method") groups.push([t]);
+      else if (tType === "logic") groups.push(collectLeafMethodsUnder(t));
+    }
+    return groups.filter(g => g.length);
+  }
+
+  (graph.nodes || []).filter(n => n.type === "logic").forEach(ln => {
+    const p = logicPredicate(ln.label);
+    if (!p) return;
+
+    const groups = leafGroupsOfLogic(ln.id);
+    // связи только между группами (не внутри одной)
+    for (let i = 0; i < groups.length; i++) {
+      for (let j = i + 1; j < groups.length; j++) {
+        for (const a of groups[i]) {
+          for (const b of groups[j]) {
+            triples.push({ объект: labelOf(a), субъект: labelOf(b), предикат: p });
+          }
+        }
+      }
+    }
+  });
+
+  // 5) Удалим дубли
+  const uniq = new Map();
+  for (const t of triples) {
+    const key = `${t.объект}||${t.субъект}||${t.предикат}`;
+    if (!uniq.has(key)) uniq.set(key, t);
+  }
+  return [...uniq.values()];
+}
+
+
+const generateBtn = document.getElementById("generate-btn");
+if (generateBtn) {
+  generateBtn.onclick = async () => {
+    if (!nodes.length) {
+      alert("Сначала нарисуйте или загрузите граф.");
+      return;
+    }
+
+    try {
+      const graphWH = buildGraphWithHierarchyJSON();     // твой новый формат
+      const graphOnly = normalizeToGraphOnly(graphWH);   // {doc,nodes,links} для backend
+
+      // TTL можно оставить из backend (пока правила TTL не перенесли на фронт)
+      const ttl = await backendToTTL(graphOnly);
+
+      // ✅ triples считаем ПРАВИЛЬНО на фронте
+      const triples = buildTriplesFromGraph(graphOnly);
+
+      const payload = {
+        doc: graphWH.doc,
+        graph: graphWH,      // nodes+links+hieararchy
+        triples              // правильные
+      };
+
+      downloadFile("recommendation.ttl", ttl, "text/turtle;charset=utf-8");
+      downloadFile("triples_new.json", JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+    } catch (e) {
+      console.error(e);
+      alert(e.message || "Ошибка при работе с формированием");
+    }
+  };
+}
+
+
