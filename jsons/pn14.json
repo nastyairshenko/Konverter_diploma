@@ -1,0 +1,174 @@
+{
+  "doc": {
+    "id": "",
+    "page": "",
+    "uur": "",
+    "udd": "",
+    "text": ""
+  },
+  "nodes": [
+    {
+      "id": "n_qjgmjlu",
+      "label": "ПН",
+      "value": null,
+      "note": null,
+      "type": "root",
+      "x": 3405,
+      "y": 90,
+      "w": 120,
+      "h": 40,
+      "collapsed": false
+    },
+    {
+      "id": "n_cpuur6t",
+      "label": "местная блокада",
+      "value": null,
+      "note": null,
+      "type": "method",
+      "x": 3491.8857421875,
+      "y": 444.98809814453125,
+      "w": 360,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_isgrzsu",
+      "label": "регионарная анестезия",
+      "value": null,
+      "note": null,
+      "type": "method",
+      "x": 3939.028076171875,
+      "y": 356.670166015625,
+      "w": 360,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_ivfh3r8",
+      "label": "ИЛИ",
+      "value": null,
+      "note": null,
+      "type": "logic",
+      "x": 3445.097900390625,
+      "y": 266.44647216796875,
+      "w": 42,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_tl7plhb",
+      "label": "И",
+      "value": null,
+      "note": null,
+      "type": "logic",
+      "x": 3093.1249767541885,
+      "y": 286.3632011413574,
+      "w": 42,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_8cmyips",
+      "label": "обезболивание",
+      "value": null,
+      "note": null,
+      "type": "criteria",
+      "x": 2665.5115394592285,
+      "y": 419.99365615844727,
+      "w": 220,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_s06a65s",
+      "label": "мeльтимодальный послеоперационный режим",
+      "value": null,
+      "note": null,
+      "type": "criteria",
+      "x": 2946.144598007202,
+      "y": 494.3659944534302,
+      "w": 220,
+      "h": 42,
+      "collapsed": false
+    }
+  ],
+  "links": [
+    {
+      "source": "n_qjgmjlu",
+      "target": "n_ivfh3r8",
+      "predicate": "рекомендуется",
+      "label": "рекомендуется",
+      "scope": "группа",
+      "scopeName": "группа методов лечения"
+    },
+    {
+      "source": "n_ivfh3r8",
+      "target": "n_cpuur6t",
+      "predicate": "рекомендуется",
+      "label": "рекомендуется",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_ivfh3r8",
+      "target": "n_isgrzsu",
+      "predicate": "рекомендуется",
+      "label": "рекомендуется",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_ivfh3r8",
+      "target": "n_tl7plhb",
+      "predicate": "критерий",
+      "label": "критерий",
+      "scope": "группа",
+      "scopeName": "группа критериев"
+    },
+    {
+      "source": "n_tl7plhb",
+      "target": "n_8cmyips",
+      "predicate": "для",
+      "label": "для",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_tl7plhb",
+      "target": "n_s06a65s",
+      "predicate": "при",
+      "label": "при",
+      "scope": "",
+      "scopeName": ""
+    }
+  ],
+  "hierarchy": {
+    "rootId": "n_qjgmjlu",
+    "groups": [
+      {
+        "id": "grp_1",
+        "scope": "группа",
+        "name": "группа методов лечения",
+        "ownerId": "n_qjgmjlu",
+        "linkIds": [
+          "n_qjgmjlu->n_ivfh3r8"
+        ],
+        "nodeIds": [
+          "n_ivfh3r8"
+        ]
+      },
+      {
+        "id": "grp_2",
+        "scope": "группа",
+        "name": "группа критериев",
+        "ownerId": "n_ivfh3r8",
+        "linkIds": [
+          "n_ivfh3r8->n_tl7plhb"
+        ],
+        "nodeIds": [
+          "n_tl7plhb"
+        ]
+      }
+    ]
+  }
+}

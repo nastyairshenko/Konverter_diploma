@@ -1,0 +1,122 @@
+{
+  "doc": {
+    "id": "",
+    "page": "",
+    "uur": "",
+    "udd": "",
+    "text": ""
+  },
+  "nodes": [
+    {
+      "id": "n_5ol8xgc",
+      "label": "ПН",
+      "value": null,
+      "note": null,
+      "type": "root",
+      "x": 536.936806678772,
+      "y": -150.51598119735718,
+      "w": 120,
+      "h": 40,
+      "collapsed": false
+    },
+    {
+      "id": "n_xi3lyg3",
+      "label": "надкостный открытый остеосинтез",
+      "value": null,
+      "note": null,
+      "type": "method",
+      "x": 481.9405770301819,
+      "y": 28.945382595062256,
+      "w": 360,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_hmzjmhj",
+      "label": "И",
+      "value": null,
+      "note": null,
+      "type": "logic",
+      "x": 479.04603123664856,
+      "y": 202.61767435073853,
+      "w": 42,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_5m7c8vr",
+      "label": "фиксация фрагментов надколенника",
+      "value": null,
+      "note": null,
+      "type": "criteria",
+      "x": 257.6138753890991,
+      "y": 418.26072788238525,
+      "w": 220,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_db5pqy0",
+      "label": "костное сращение",
+      "value": null,
+      "note": null,
+      "type": "criteria",
+      "x": 603.5111360549927,
+      "y": 428.3916189670563,
+      "w": 220,
+      "h": 42,
+      "collapsed": false
+    }
+  ],
+  "links": [
+    {
+      "source": "n_xi3lyg3",
+      "target": "n_5ol8xgc",
+      "predicate": "рекомендуется",
+      "label": "рекомендуется",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_5m7c8vr",
+      "target": "n_hmzjmhj",
+      "predicate": "для",
+      "label": "для",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_hmzjmhj",
+      "target": "n_db5pqy0",
+      "predicate": "для",
+      "label": "для",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_hmzjmhj",
+      "target": "n_xi3lyg3",
+      "predicate": "для",
+      "label": "для",
+      "scope": "группа",
+      "scopeName": "группа критериев"
+    }
+  ],
+  "hierarchy": {
+    "rootId": "n_5ol8xgc",
+    "groups": [
+      {
+        "id": "grp_1",
+        "scope": "группа",
+        "name": "группа критериев",
+        "ownerId": "n_hmzjmhj",
+        "linkIds": [
+          "n_hmzjmhj->n_xi3lyg3"
+        ],
+        "nodeIds": [
+          "n_xi3lyg3"
+        ]
+      }
+    ]
+  }
+}

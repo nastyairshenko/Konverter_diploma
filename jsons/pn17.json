@@ -1,0 +1,162 @@
+{
+  "doc": {
+    "id": "",
+    "page": "",
+    "uur": "",
+    "udd": "",
+    "text": ""
+  },
+  "nodes": [
+    {
+      "id": "n_6i98rbx",
+      "label": "ПН",
+      "value": null,
+      "note": null,
+      "type": "root",
+      "x": -29.05123281478882,
+      "y": -208.41102075576782,
+      "w": 120,
+      "h": 40,
+      "collapsed": false
+    },
+    {
+      "id": "n_am0r6j3",
+      "label": "антибактериальная терапия",
+      "value": null,
+      "note": null,
+      "type": "method",
+      "x": -17.683358311653137,
+      "y": -94.1007308959961,
+      "w": 360,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_eryl6ce",
+      "label": "не более 72 часов",
+      "value": null,
+      "note": null,
+      "type": "method",
+      "x": 421.2428550720215,
+      "y": 5.0523881912231445,
+      "w": 360,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_2kr1vy9",
+      "label": "ИЛИ",
+      "value": null,
+      "note": null,
+      "type": "logic",
+      "x": -26.525038719177246,
+      "y": 68.20724201202393,
+      "w": 42,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_3ho0526",
+      "label": "закрытие раны",
+      "value": null,
+      "note": null,
+      "type": "criteria",
+      "x": -330.2998971939087,
+      "y": 173.04429125785828,
+      "w": 220,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_mi2gwnx",
+      "label": "снижение риска развития инфекционных осложнений",
+      "value": null,
+      "note": null,
+      "type": "criteria",
+      "x": -85.89059829711914,
+      "y": 251.35631275177002,
+      "w": 220,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_2zkntin",
+      "label": "открытый ПН",
+      "value": null,
+      "note": null,
+      "type": "criteria",
+      "x": 214.72649383544922,
+      "y": 181.88597357273102,
+      "w": 220,
+      "h": 42,
+      "collapsed": false
+    }
+  ],
+  "links": [
+    {
+      "source": "n_6i98rbx",
+      "target": "n_am0r6j3",
+      "predicate": "рекомендуется",
+      "label": "рекомендуется",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_am0r6j3",
+      "target": "n_eryl6ce",
+      "predicate": "применяется",
+      "label": "применяется",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_am0r6j3",
+      "target": "n_2kr1vy9",
+      "predicate": "критерий",
+      "label": "критерий",
+      "scope": "группа",
+      "scopeName": "группа критериев"
+    },
+    {
+      "source": "n_2kr1vy9",
+      "target": "n_3ho0526",
+      "predicate": "критерий пациент",
+      "label": "критерий пациент",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_2kr1vy9",
+      "target": "n_mi2gwnx",
+      "predicate": "для",
+      "label": "для",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_2kr1vy9",
+      "target": "n_2zkntin",
+      "predicate": "критерий симптом",
+      "label": "критерий симптом",
+      "scope": "",
+      "scopeName": ""
+    }
+  ],
+  "hierarchy": {
+    "rootId": "n_6i98rbx",
+    "groups": [
+      {
+        "id": "grp_1",
+        "scope": "группа",
+        "name": "группа критериев",
+        "ownerId": "n_am0r6j3",
+        "linkIds": [
+          "n_am0r6j3->n_2kr1vy9"
+        ],
+        "nodeIds": [
+          "n_2kr1vy9"
+        ]
+      }
+    ]
+  }
+}

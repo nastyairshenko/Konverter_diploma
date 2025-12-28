@@ -1,0 +1,122 @@
+{
+  "doc": {
+    "id": "",
+    "page": "",
+    "uur": "",
+    "udd": "",
+    "text": ""
+  },
+  "nodes": [
+    {
+      "id": "n_8i13ebz",
+      "label": "ПН",
+      "value": null,
+      "note": null,
+      "type": "root",
+      "x": 2.0945873260498047,
+      "y": -113.10775232315063,
+      "w": 120,
+      "h": 40,
+      "collapsed": false
+    },
+    {
+      "id": "n_d1czwl1",
+      "label": "максимально точная реконструкция суставной поверхности",
+      "value": null,
+      "note": null,
+      "type": "method",
+      "x": 20.581174850463867,
+      "y": -8.236472129821777,
+      "w": 360,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_92pcqtp",
+      "label": "И",
+      "value": null,
+      "note": null,
+      "type": "logic",
+      "x": 23.04047054052353,
+      "y": 141.3846926689148,
+      "w": 42,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_vmpvsip",
+      "label": "внутрисуставный ПН",
+      "value": null,
+      "note": null,
+      "type": "criteria",
+      "x": -109.04703998565674,
+      "y": 274.69529581069946,
+      "w": 220,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_3w3ermy",
+      "label": "костное сращение",
+      "value": null,
+      "note": null,
+      "type": "criteria",
+      "x": 175.94539642333984,
+      "y": 245.06682014465332,
+      "w": 220,
+      "h": 42,
+      "collapsed": false
+    }
+  ],
+  "links": [
+    {
+      "source": "n_d1czwl1",
+      "target": "n_8i13ebz",
+      "predicate": "рекомендуется",
+      "label": "рекомендуется",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_d1czwl1",
+      "target": "n_92pcqtp",
+      "predicate": "критерий",
+      "label": "критерий",
+      "scope": "группа",
+      "scopeName": "группа критериев"
+    },
+    {
+      "source": "n_92pcqtp",
+      "target": "n_vmpvsip",
+      "predicate": "критерий симптом",
+      "label": "критерий симптом",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_92pcqtp",
+      "target": "n_3w3ermy",
+      "predicate": "для",
+      "label": "для",
+      "scope": "",
+      "scopeName": ""
+    }
+  ],
+  "hierarchy": {
+    "rootId": "n_8i13ebz",
+    "groups": [
+      {
+        "id": "grp_1",
+        "scope": "группа",
+        "name": "группа критериев",
+        "ownerId": "n_d1czwl1",
+        "linkIds": [
+          "n_d1czwl1->n_92pcqtp"
+        ],
+        "nodeIds": [
+          "n_92pcqtp"
+        ]
+      }
+    ]
+  }
+}

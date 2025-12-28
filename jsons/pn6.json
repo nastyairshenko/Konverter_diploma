@@ -1,0 +1,122 @@
+{
+  "doc": {
+    "id": "",
+    "page": "",
+    "uur": "",
+    "udd": "",
+    "text": ""
+  },
+  "nodes": [
+    {
+      "id": "n_f879628",
+      "label": "ПН",
+      "value": null,
+      "note": null,
+      "type": "root",
+      "x": -90.06728935241699,
+      "y": -8.378351897001266,
+      "w": 120,
+      "h": 40,
+      "collapsed": false
+    },
+    {
+      "id": "n_fvwlkwz",
+      "label": "применение аппаратов наружной фиксации",
+      "value": null,
+      "note": null,
+      "type": "method",
+      "x": -85.87810516357422,
+      "y": 134.05363941192627,
+      "w": 360,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_whgzq5t",
+      "label": "временная фиксация отломков",
+      "value": null,
+      "note": null,
+      "type": "criteria",
+      "x": -238.78303980827332,
+      "y": 396.9244050979614,
+      "w": 220,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_f8zw47p",
+      "label": "консолидация перелома",
+      "value": null,
+      "note": null,
+      "type": "criteria",
+      "x": 61.790350914001465,
+      "y": 421.01216220855713,
+      "w": 220,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_jzepntf",
+      "label": "ИЛИ",
+      "value": null,
+      "note": null,
+      "type": "logic",
+      "x": -86.92540168762207,
+      "y": 245.06680393218994,
+      "w": 42,
+      "h": 42,
+      "collapsed": false
+    }
+  ],
+  "links": [
+    {
+      "source": "n_f879628",
+      "target": "n_fvwlkwz",
+      "predicate": "рекомендуется",
+      "label": "рекомендуется",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_fvwlkwz",
+      "target": "n_jzepntf",
+      "predicate": "критерий",
+      "label": "критерий",
+      "scope": "группа",
+      "scopeName": "группа критериев"
+    },
+    {
+      "source": "n_jzepntf",
+      "target": "n_whgzq5t",
+      "predicate": "для",
+      "label": "для",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_jzepntf",
+      "target": "n_f8zw47p",
+      "predicate": "для",
+      "label": "для",
+      "scope": "",
+      "scopeName": ""
+    }
+  ],
+  "hierarchy": {
+    "rootId": "n_f879628",
+    "groups": [
+      {
+        "id": "grp_1",
+        "scope": "группа",
+        "name": "группа критериев",
+        "ownerId": "n_fvwlkwz",
+        "linkIds": [
+          "n_fvwlkwz->n_jzepntf"
+        ],
+        "nodeIds": [
+          "n_jzepntf"
+        ]
+      }
+    ]
+  }
+}

@@ -13,8 +13,8 @@
       "value": null,
       "note": null,
       "type": "root",
-      "x": 1575.4765625,
-      "y": 82.76365661621094,
+      "x": 1569.6875,
+      "y": 90,
       "w": 120,
       "h": 40,
       "collapsed": false
@@ -141,8 +141,8 @@
     },
     {
       "id": "критерий_СтабильныйПерелом",
-      "label": "стабильный",
-      "value": "ПН",
+      "label": "стабильный ПН",
+      "value": null,
       "note": null,
       "type": "criteria",
       "x": 1589.6875,
@@ -166,7 +166,7 @@
     {
       "id": "критерий_ВыраженноеСмещение",
       "label": "смещение отломков",
-      "value": "менее 2–3 мм",
+      "value": null,
       "note": null,
       "type": "criteria",
       "x": 1409.6875,
@@ -195,6 +195,18 @@
       "type": "criteria",
       "x": 1049.6875,
       "y": 1280,
+      "w": 220,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_vcd8obm",
+      "label": "менее 2–3 мм",
+      "value": null,
+      "note": null,
+      "type": "criteria",
+      "x": 1438.8389587402344,
+      "y": 1262.4722919464111,
       "w": 220,
       "h": 42,
       "collapsed": false
@@ -318,6 +330,14 @@
       "target": "критерий_Смещение",
       "predicate": "критерий симптом",
       "label": "критерий симптом",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "критерий_ВыраженноеСмещение",
+      "target": "n_vcd8obm",
+      "predicate": "значение",
+      "label": "значение",
       "scope": "",
       "scopeName": ""
     }

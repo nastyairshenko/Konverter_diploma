@@ -1,0 +1,142 @@
+{
+  "doc": {
+    "id": "",
+    "page": "",
+    "uur": "",
+    "udd": "",
+    "text": ""
+  },
+  "nodes": [
+    {
+      "id": "n_2vqpsly",
+      "label": "ПН",
+      "value": null,
+      "note": null,
+      "type": "root",
+      "x": 135.69877433776855,
+      "y": -248.04349517822266,
+      "w": 120,
+      "h": 40,
+      "collapsed": false
+    },
+    {
+      "id": "n_vylgzv5",
+      "label": "назначение профилактических доз НМГ или НФГ",
+      "value": null,
+      "note": null,
+      "type": "method",
+      "x": 147.30450057983398,
+      "y": -96.94207882881165,
+      "w": 360,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_6upd4j3",
+      "label": "И",
+      "value": null,
+      "note": null,
+      "type": "logic",
+      "x": 141.64607620239258,
+      "y": 28.329215168952942,
+      "w": 42,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_nrbqch4",
+      "label": "высокий риск ВТЭО",
+      "value": null,
+      "note": null,
+      "type": "criteria",
+      "x": -151.29924392700195,
+      "y": 245.49505043029785,
+      "w": 220,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_wpn6gzh",
+      "label": "детский возраст",
+      "value": null,
+      "note": null,
+      "type": "criteria",
+      "x": 511.07936096191406,
+      "y": 210.47085857391357,
+      "w": 220,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_quq4xrg",
+      "label": "B01AB",
+      "value": null,
+      "note": null,
+      "type": "method",
+      "x": -365.2414131164551,
+      "y": -173.87340927124023,
+      "w": 360,
+      "h": 42,
+      "collapsed": false
+    }
+  ],
+  "links": [
+    {
+      "source": "n_2vqpsly",
+      "target": "n_vylgzv5",
+      "predicate": "рекомендуется",
+      "label": "рекомендуется",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_vylgzv5",
+      "target": "n_6upd4j3",
+      "predicate": "критерий",
+      "label": "критерий",
+      "scope": "группа",
+      "scopeName": "группа критериев"
+    },
+    {
+      "source": "n_6upd4j3",
+      "target": "n_wpn6gzh",
+      "predicate": "критерий пациент",
+      "label": "критерий пациент",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_6upd4j3",
+      "target": "n_nrbqch4",
+      "predicate": "критерий симптом",
+      "label": "критерий симптом",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_vylgzv5",
+      "target": "n_quq4xrg",
+      "predicate": "группа АТХ",
+      "label": "группа АТХ",
+      "scope": "",
+      "scopeName": ""
+    }
+  ],
+  "hierarchy": {
+    "rootId": "n_2vqpsly",
+    "groups": [
+      {
+        "id": "grp_1",
+        "scope": "группа",
+        "name": "группа критериев",
+        "ownerId": "n_vylgzv5",
+        "linkIds": [
+          "n_vylgzv5->n_6upd4j3"
+        ],
+        "nodeIds": [
+          "n_6upd4j3"
+        ]
+      }
+    ]
+  }
+}

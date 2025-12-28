@@ -1,0 +1,102 @@
+{
+  "doc": {
+    "id": "",
+    "page": "",
+    "uur": "",
+    "udd": "",
+    "text": ""
+  },
+  "nodes": [
+    {
+      "id": "n_6i98rbx",
+      "label": "ПН",
+      "value": null,
+      "note": null,
+      "type": "root",
+      "x": -29.05123281478882,
+      "y": -208.41102075576782,
+      "w": 120,
+      "h": 40,
+      "collapsed": false
+    },
+    {
+      "id": "n_am0r6j3",
+      "label": "антибиотекотерапия инфекции области хирургического вмешастельства",
+      "value": null,
+      "note": null,
+      "type": "method",
+      "x": -17.683358311653137,
+      "y": -94.1007308959961,
+      "w": 360,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_eryl6ce",
+      "label": "не более 24 часов",
+      "value": null,
+      "note": null,
+      "type": "method",
+      "x": 421.2428550720215,
+      "y": 5.0523881912231445,
+      "w": 360,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_3ho0526",
+      "label": "хирургическое лечение",
+      "value": null,
+      "note": null,
+      "type": "criteria",
+      "x": -68.20725828409195,
+      "y": 71.36498522758484,
+      "w": 220,
+      "h": 42,
+      "collapsed": false
+    }
+  ],
+  "links": [
+    {
+      "source": "n_6i98rbx",
+      "target": "n_am0r6j3",
+      "predicate": "рекомендуется",
+      "label": "рекомендуется",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_am0r6j3",
+      "target": "n_eryl6ce",
+      "predicate": "применяется",
+      "label": "применяется",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_am0r6j3",
+      "target": "n_3ho0526",
+      "predicate": "при",
+      "label": "при",
+      "scope": "группа",
+      "scopeName": "группа критериев"
+    }
+  ],
+  "hierarchy": {
+    "rootId": "n_6i98rbx",
+    "groups": [
+      {
+        "id": "grp_1",
+        "scope": "группа",
+        "name": "группа критериев",
+        "ownerId": "n_am0r6j3",
+        "linkIds": [
+          "n_am0r6j3->n_3ho0526"
+        ],
+        "nodeIds": [
+          "n_3ho0526"
+        ]
+      }
+    ]
+  }
+}

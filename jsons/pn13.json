@@ -1,0 +1,318 @@
+{
+  "doc": {
+    "id": "",
+    "page": "",
+    "uur": "",
+    "udd": "",
+    "text": ""
+  },
+  "nodes": [
+    {
+      "id": "n_qjgmjlu",
+      "label": "ПН",
+      "value": null,
+      "note": null,
+      "type": "root",
+      "x": 3405,
+      "y": 90,
+      "w": 120,
+      "h": 40,
+      "collapsed": false
+    },
+    {
+      "id": "n_cpuur6t",
+      "label": "нестероидных противовоспалительных\r\n и противоревматических препаратов",
+      "value": null,
+      "note": null,
+      "type": "method",
+      "x": 3426.953369140625,
+      "y": 490.021728515625,
+      "w": 360,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_isgrzsu",
+      "label": "анальгетики",
+      "value": null,
+      "note": null,
+      "type": "method",
+      "x": 3898.183837890625,
+      "y": 399.6092529296875,
+      "w": 360,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_ivfh3r8",
+      "label": "И",
+      "value": null,
+      "note": null,
+      "type": "logic",
+      "x": 3445.097900390625,
+      "y": 266.44647216796875,
+      "w": 42,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_tl7plhb",
+      "label": "И",
+      "value": null,
+      "note": null,
+      "type": "logic",
+      "x": 3093.1249767541885,
+      "y": 286.3632011413574,
+      "w": 42,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_cgn3ol0",
+      "label": "дети",
+      "value": null,
+      "note": null,
+      "type": "criteria",
+      "x": 2699.9556274414062,
+      "y": 257.2526454925537,
+      "w": 220,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_8cmyips",
+      "label": "выраженный болевой симптом",
+      "value": null,
+      "note": null,
+      "type": "criteria",
+      "x": 2665.5115394592285,
+      "y": 419.99365615844727,
+      "w": 220,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_pitlce7",
+      "label": "M014",
+      "value": null,
+      "note": null,
+      "type": "method",
+      "x": 3430.437110900879,
+      "y": 614.4935748577118,
+      "w": 360,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_s06a65s",
+      "label": "отсутствие эффективности парацетомола и ибупрофена",
+      "value": null,
+      "note": null,
+      "type": "criteria",
+      "x": 2946.144598007202,
+      "y": 494.3659944534302,
+      "w": 220,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_tm5da4z",
+      "label": "И",
+      "value": null,
+      "note": null,
+      "type": "logic",
+      "x": 3902.171305656433,
+      "y": 524.1549944877625,
+      "w": 42,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_fmuahxk",
+      "label": "соотвествующие показания",
+      "value": null,
+      "note": null,
+      "type": "criteria",
+      "x": 4128.964935302734,
+      "y": 675.8768295049667,
+      "w": 220,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_w3c24n0",
+      "label": "противопоказания",
+      "value": null,
+      "note": null,
+      "type": "criteria",
+      "x": 3776.254238128662,
+      "y": 732.8158054351807,
+      "w": 220,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_xv6geql",
+      "label": "НЕТ",
+      "value": null,
+      "note": null,
+      "type": "logic",
+      "x": 3817.7543754577637,
+      "y": 573.3022065162659,
+      "w": 42,
+      "h": 42,
+      "collapsed": false
+    }
+  ],
+  "links": [
+    {
+      "source": "n_qjgmjlu",
+      "target": "n_ivfh3r8",
+      "predicate": "рекомендуется",
+      "label": "рекомендуется",
+      "scope": "группа",
+      "scopeName": "группа методов лечения"
+    },
+    {
+      "source": "n_ivfh3r8",
+      "target": "n_cpuur6t",
+      "predicate": "рекомендуется",
+      "label": "рекомендуется",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_ivfh3r8",
+      "target": "n_isgrzsu",
+      "predicate": "рекомендуется",
+      "label": "рекомендуется",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_ivfh3r8",
+      "target": "n_tl7plhb",
+      "predicate": "критерий",
+      "label": "критерий",
+      "scope": "группа",
+      "scopeName": "группа критериев"
+    },
+    {
+      "source": "n_tl7plhb",
+      "target": "n_8cmyips",
+      "predicate": "критерий симптом",
+      "label": "критерий симптом",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_tl7plhb",
+      "target": "n_cgn3ol0",
+      "predicate": "критерий пациент",
+      "label": "критерий пациент",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_cpuur6t",
+      "target": "n_pitlce7",
+      "predicate": "группа АТХ",
+      "label": "группа АТХ",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_tl7plhb",
+      "target": "n_s06a65s",
+      "predicate": "критерий пациент",
+      "label": "критерий пациент",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_isgrzsu",
+      "target": "n_tm5da4z",
+      "predicate": "критерий",
+      "label": "критерий",
+      "scope": "группа",
+      "scopeName": "группа критериев"
+    },
+    {
+      "source": "n_tm5da4z",
+      "target": "n_fmuahxk",
+      "predicate": "критерий пациент",
+      "label": "критерий пациент",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_tm5da4z",
+      "target": "n_xv6geql",
+      "predicate": "критерий",
+      "label": "критерий",
+      "scope": "подгруппа",
+      "scopeName": "подгруппа критериев"
+    },
+    {
+      "source": "n_xv6geql",
+      "target": "n_w3c24n0",
+      "predicate": "критерий пациент",
+      "label": "критерий пациент",
+      "scope": "",
+      "scopeName": ""
+    }
+  ],
+  "hierarchy": {
+    "rootId": "n_qjgmjlu",
+    "groups": [
+      {
+        "id": "grp_1",
+        "scope": "группа",
+        "name": "группа методов лечения",
+        "ownerId": "n_qjgmjlu",
+        "linkIds": [
+          "n_qjgmjlu->n_ivfh3r8"
+        ],
+        "nodeIds": [
+          "n_ivfh3r8"
+        ]
+      },
+      {
+        "id": "grp_2",
+        "scope": "группа",
+        "name": "группа критериев",
+        "ownerId": "n_ivfh3r8",
+        "linkIds": [
+          "n_ivfh3r8->n_tl7plhb"
+        ],
+        "nodeIds": [
+          "n_tl7plhb"
+        ]
+      },
+      {
+        "id": "grp_3",
+        "scope": "группа",
+        "name": "группа критериев",
+        "ownerId": "n_isgrzsu",
+        "linkIds": [
+          "n_isgrzsu->n_tm5da4z"
+        ],
+        "nodeIds": [
+          "n_tm5da4z"
+        ]
+      },
+      {
+        "id": "grp_4",
+        "scope": "подгруппа",
+        "name": "подгруппа критериев",
+        "ownerId": "n_tm5da4z",
+        "linkIds": [
+          "n_tm5da4z->n_xv6geql"
+        ],
+        "nodeIds": [
+          "n_xv6geql"
+        ]
+      }
+    ]
+  }
+}

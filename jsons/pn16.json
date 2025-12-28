@@ -1,0 +1,346 @@
+{
+  "doc": {
+    "id": "",
+    "page": "",
+    "uur": "",
+    "udd": "",
+    "text": ""
+  },
+  "nodes": [
+    {
+      "id": "n_qjgmjlu",
+      "label": "ПН",
+      "value": null,
+      "note": null,
+      "type": "root",
+      "x": 3342.66796875,
+      "y": -167.35727882385254,
+      "w": 120,
+      "h": 40,
+      "collapsed": false
+    },
+    {
+      "id": "n_cpuur6t",
+      "label": "цефалоспорины первого и второго поколения",
+      "value": null,
+      "note": null,
+      "type": "method",
+      "x": 3594.53271484375,
+      "y": 95.62476348876953,
+      "w": 360,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_tl7plhb",
+      "label": "И",
+      "value": null,
+      "note": null,
+      "type": "logic",
+      "x": 3719.4809337854385,
+      "y": -81.40207290649414,
+      "w": 42,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_8cmyips",
+      "label": "оперативные вмешательства ортопедии и травмотологии",
+      "value": null,
+      "note": null,
+      "type": "criteria",
+      "x": 4186.3843421936035,
+      "y": 74.30796432495117,
+      "w": 220,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_s06a65s",
+      "label": "хирургическая антибиотекотерапия",
+      "value": null,
+      "note": null,
+      "type": "criteria",
+      "x": 4099.659734725952,
+      "y": -118.38017559051514,
+      "w": 220,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_dv8u9a2",
+      "label": "ИЛИ",
+      "value": null,
+      "note": null,
+      "type": "logic",
+      "x": 3350.152467727661,
+      "y": -41.27706062793732,
+      "w": 42,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_h10mzxn",
+      "label": "антибиотики гликопептидной структуры",
+      "value": null,
+      "note": null,
+      "type": "method",
+      "x": 3025.2086124420166,
+      "y": 70.29354476928711,
+      "w": 360,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_eybprzz",
+      "label": "линкозамиды",
+      "value": null,
+      "note": null,
+      "type": "method",
+      "x": 2586.5559458732605,
+      "y": -30.09077650308609,
+      "w": 360,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_i6df0st",
+      "label": "клиндамицин",
+      "value": null,
+      "note": null,
+      "type": "method",
+      "x": 2314.750030517578,
+      "y": 103.6918556690216,
+      "w": 360,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_i6mxjmp",
+      "label": "ванкомицин",
+      "value": null,
+      "note": null,
+      "type": "method",
+      "x": 2922.015411376953,
+      "y": 270.4967861175537,
+      "w": 360,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_d2yiond",
+      "label": "цефазолин",
+      "value": null,
+      "note": null,
+      "type": "method",
+      "x": 3453.1152687072754,
+      "y": 252.81255054473877,
+      "w": 360,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_a9v5uo9",
+      "label": "цефуроксим",
+      "value": null,
+      "note": null,
+      "type": "method",
+      "x": 3844.5409507751465,
+      "y": 265.014039516449,
+      "w": 360,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_te3pvzu",
+      "label": "НЕТ",
+      "value": null,
+      "note": null,
+      "type": "logic",
+      "x": 2632.5317752361298,
+      "y": 156.61690711975098,
+      "w": 42,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_cj3bvxr",
+      "label": "бета-лактамные антибиотики",
+      "value": null,
+      "note": null,
+      "type": "criteria",
+      "x": 2559.8164863586426,
+      "y": 271.80380177497864,
+      "w": 220,
+      "h": 42,
+      "collapsed": false
+    }
+  ],
+  "links": [
+    {
+      "source": "n_tl7plhb",
+      "target": "n_8cmyips",
+      "predicate": "при",
+      "label": "при",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_tl7plhb",
+      "target": "n_s06a65s",
+      "predicate": "для",
+      "label": "для",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_qjgmjlu",
+      "target": "n_dv8u9a2",
+      "predicate": "рекомендуется",
+      "label": "рекомендуется",
+      "scope": "группа",
+      "scopeName": "группа методов лечения"
+    },
+    {
+      "source": "n_dv8u9a2",
+      "target": "n_eybprzz",
+      "predicate": "рекомендуется",
+      "label": "рекомендуется",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_eybprzz",
+      "target": "n_i6df0st",
+      "predicate": "используется",
+      "label": "используется",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_dv8u9a2",
+      "target": "n_cpuur6t",
+      "predicate": "рекомендуется",
+      "label": "рекомендуется",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_cpuur6t",
+      "target": "n_d2yiond",
+      "predicate": "используется",
+      "label": "используется",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_cpuur6t",
+      "target": "n_a9v5uo9",
+      "predicate": "используется",
+      "label": "используется",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_dv8u9a2",
+      "target": "n_h10mzxn",
+      "predicate": "рекомендуется",
+      "label": "рекомендуется",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_h10mzxn",
+      "target": "n_i6mxjmp",
+      "predicate": "используется",
+      "label": "используется",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_eybprzz",
+      "target": "n_te3pvzu",
+      "predicate": "критерий",
+      "label": "критерий",
+      "scope": "группа",
+      "scopeName": "группа критериев"
+    },
+    {
+      "source": "n_h10mzxn",
+      "target": "n_te3pvzu",
+      "predicate": "критерий",
+      "label": "критерий",
+      "scope": "группа",
+      "scopeName": "группа критериев"
+    },
+    {
+      "source": "n_te3pvzu",
+      "target": "n_cj3bvxr",
+      "predicate": "критерий возможность",
+      "label": "критерий возможность",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_dv8u9a2",
+      "target": "n_tl7plhb",
+      "predicate": "критерий",
+      "label": "критерий",
+      "scope": "группа",
+      "scopeName": "группа критериев"
+    }
+  ],
+  "hierarchy": {
+    "rootId": "n_qjgmjlu",
+    "groups": [
+      {
+        "id": "grp_1",
+        "scope": "группа",
+        "name": "группа методов лечения",
+        "ownerId": "n_qjgmjlu",
+        "linkIds": [
+          "n_qjgmjlu->n_dv8u9a2"
+        ],
+        "nodeIds": [
+          "n_dv8u9a2"
+        ]
+      },
+      {
+        "id": "grp_2",
+        "scope": "группа",
+        "name": "группа критериев",
+        "ownerId": "n_eybprzz",
+        "linkIds": [
+          "n_eybprzz->n_te3pvzu"
+        ],
+        "nodeIds": [
+          "n_te3pvzu"
+        ]
+      },
+      {
+        "id": "grp_3",
+        "scope": "группа",
+        "name": "группа критериев",
+        "ownerId": "n_h10mzxn",
+        "linkIds": [
+          "n_h10mzxn->n_te3pvzu"
+        ],
+        "nodeIds": [
+          "n_te3pvzu"
+        ]
+      },
+      {
+        "id": "grp_4",
+        "scope": "группа",
+        "name": "группа критериев",
+        "ownerId": "n_dv8u9a2",
+        "linkIds": [
+          "n_dv8u9a2->n_tl7plhb"
+        ],
+        "nodeIds": [
+          "n_tl7plhb"
+        ]
+      }
+    ]
+  }
+}

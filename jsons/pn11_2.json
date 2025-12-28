@@ -1,0 +1,306 @@
+{
+  "doc": {
+    "id": "",
+    "page": "",
+    "uur": "",
+    "udd": "",
+    "text": ""
+  },
+  "nodes": [
+    {
+      "id": "n_qjgmjlu",
+      "label": "ПН",
+      "value": null,
+      "note": null,
+      "type": "root",
+      "x": -176.9927043914795,
+      "y": -409.4919672012329,
+      "w": 120,
+      "h": 40,
+      "collapsed": false
+    },
+    {
+      "id": "n_cpuur6t",
+      "label": "мультимодальная анальгезия",
+      "value": null,
+      "note": null,
+      "type": "method",
+      "x": -228.31007766723633,
+      "y": -60.74307060241699,
+      "w": 360,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_isgrzsu",
+      "label": "мономодальная",
+      "value": null,
+      "note": null,
+      "type": "method",
+      "x": 471.2823295593262,
+      "y": -210.50613641738892,
+      "w": 360,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_ivfh3r8",
+      "label": "ИЛИ",
+      "value": null,
+      "note": null,
+      "type": "logic",
+      "x": -175.94539761543274,
+      "y": -284.86398696899414,
+      "w": 42,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_7qaa2ks",
+      "label": "обезболивание",
+      "value": null,
+      "note": null,
+      "type": "criteria",
+      "x": 358.1745414733887,
+      "y": -361.31643295288086,
+      "w": 220,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_px3xo5h",
+      "label": "НЕТ",
+      "value": null,
+      "note": null,
+      "type": "logic",
+      "x": 189.56020951271057,
+      "y": -125.67528259754181,
+      "w": 42,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_2n1s7hz",
+      "label": "ИЛИ",
+      "value": null,
+      "note": null,
+      "type": "logic",
+      "x": -189.56022000312805,
+      "y": 97.39834308624268,
+      "w": 42,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_0ffjgzb",
+      "label": "НПВП",
+      "value": null,
+      "note": null,
+      "type": "method",
+      "x": -709.0180473327637,
+      "y": 129.86445830017328,
+      "w": 360,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_0jk2vix",
+      "label": "габапентиноиды",
+      "value": null,
+      "note": null,
+      "type": "method",
+      "x": -735.2003779411316,
+      "y": 281.7221090570092,
+      "w": 360,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_6ix29ci",
+      "label": "нестероидные противовоспалительные и противоревматические препараты",
+      "value": null,
+      "note": null,
+      "type": "method",
+      "x": -421.0121826529503,
+      "y": 437.768892288208,
+      "w": 360,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_rz0fbzn",
+      "label": "парацетомол",
+      "value": null,
+      "note": null,
+      "type": "method",
+      "x": -19.898580312728882,
+      "y": 372.8366333246231,
+      "w": 360,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_vfpwf1h",
+      "label": "M014",
+      "value": null,
+      "note": null,
+      "type": "method",
+      "x": -851.4500198364258,
+      "y": -29.32423210144043,
+      "w": 360,
+      "h": 42,
+      "collapsed": false
+    }
+  ],
+  "links": [
+    {
+      "source": "n_qjgmjlu",
+      "target": "n_ivfh3r8",
+      "predicate": "рекомендуется",
+      "label": "рекомендуется",
+      "scope": "группа",
+      "scopeName": "группа методов лечения"
+    },
+    {
+      "source": "n_ivfh3r8",
+      "target": "n_cpuur6t",
+      "predicate": "рекомендуется",
+      "label": "рекомендуется",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_ivfh3r8",
+      "target": "n_isgrzsu",
+      "predicate": "рекомендуется",
+      "label": "рекомендуется",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_ivfh3r8",
+      "target": "n_7qaa2ks",
+      "predicate": "для",
+      "label": "для",
+      "scope": "группа",
+      "scopeName": "группа критериев"
+    },
+    {
+      "source": "n_isgrzsu",
+      "target": "n_px3xo5h",
+      "predicate": "критерий",
+      "label": "критерий",
+      "scope": "группа",
+      "scopeName": "группа критериев"
+    },
+    {
+      "source": "n_px3xo5h",
+      "target": "n_cpuur6t",
+      "predicate": "критерий возможность",
+      "label": "критерий возможность",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_cpuur6t",
+      "target": "n_2n1s7hz",
+      "predicate": "рекомендуется",
+      "label": "рекомендуется",
+      "scope": "группа",
+      "scopeName": "группа методов лечения"
+    },
+    {
+      "source": "n_2n1s7hz",
+      "target": "n_0ffjgzb",
+      "predicate": "рекомендуется",
+      "label": "рекомендуется",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_2n1s7hz",
+      "target": "n_0jk2vix",
+      "predicate": "рекомендуется",
+      "label": "рекомендуется",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_2n1s7hz",
+      "target": "n_6ix29ci",
+      "predicate": "рекомендуется",
+      "label": "рекомендуется",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_2n1s7hz",
+      "target": "n_rz0fbzn",
+      "predicate": "рекомендуется",
+      "label": "рекомендуется",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_0ffjgzb",
+      "target": "n_vfpwf1h",
+      "predicate": "группа АТХ",
+      "label": "группа АТХ",
+      "scope": "",
+      "scopeName": ""
+    }
+  ],
+  "hierarchy": {
+    "rootId": "n_qjgmjlu",
+    "groups": [
+      {
+        "id": "grp_1",
+        "scope": "группа",
+        "name": "группа методов лечения",
+        "ownerId": "n_qjgmjlu",
+        "linkIds": [
+          "n_qjgmjlu->n_ivfh3r8"
+        ],
+        "nodeIds": [
+          "n_ivfh3r8"
+        ]
+      },
+      {
+        "id": "grp_2",
+        "scope": "группа",
+        "name": "группа критериев",
+        "ownerId": "n_ivfh3r8",
+        "linkIds": [
+          "n_ivfh3r8->n_7qaa2ks"
+        ],
+        "nodeIds": [
+          "n_7qaa2ks"
+        ]
+      },
+      {
+        "id": "grp_3",
+        "scope": "группа",
+        "name": "группа критериев",
+        "ownerId": "n_isgrzsu",
+        "linkIds": [
+          "n_isgrzsu->n_px3xo5h"
+        ],
+        "nodeIds": [
+          "n_px3xo5h"
+        ]
+      },
+      {
+        "id": "grp_4",
+        "scope": "группа",
+        "name": "группа методов лечения",
+        "ownerId": "n_cpuur6t",
+        "linkIds": [
+          "n_cpuur6t->n_2n1s7hz"
+        ],
+        "nodeIds": [
+          "n_2n1s7hz"
+        ]
+      }
+    ]
+  }
+}

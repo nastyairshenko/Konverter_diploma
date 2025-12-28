@@ -1,0 +1,214 @@
+{
+  "doc": {
+    "id": "",
+    "page": "",
+    "uur": "",
+    "udd": "",
+    "text": ""
+  },
+  "nodes": [
+    {
+      "id": "n_49ur1oc",
+      "label": "ПН",
+      "value": null,
+      "note": null,
+      "type": "root",
+      "x": -44.86534023284912,
+      "y": -304.6501671075821,
+      "w": 120,
+      "h": 40,
+      "collapsed": false
+    },
+    {
+      "id": "n_28yjay3",
+      "label": "ИЛИ",
+      "value": null,
+      "note": null,
+      "type": "logic",
+      "x": -159.19961023330688,
+      "y": -172.22501850128174,
+      "w": 42,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_w51lq26",
+      "label": "анатоксин столбнячный",
+      "value": null,
+      "note": null,
+      "type": "method",
+      "x": -90.45432090759277,
+      "y": 70.91619265079498,
+      "w": 360,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_8dx3vfq",
+      "label": "антитоксин столбнячный",
+      "value": null,
+      "note": null,
+      "type": "method",
+      "x": -366.1590805053711,
+      "y": -18.81449007987976,
+      "w": 360,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_4we6kto",
+      "label": "иммуноглобулин человека противостолбнячный",
+      "value": null,
+      "note": null,
+      "type": "method",
+      "x": -599.8930397033691,
+      "y": -103.47974491119385,
+      "w": 360,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_n9k9e7v",
+      "label": "возрастные ограничения",
+      "value": null,
+      "note": null,
+      "type": "criteria",
+      "x": 293.7956085205078,
+      "y": 103.47973728179932,
+      "w": 220,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_szuc7fa",
+      "label": "профилактика столбняка",
+      "value": null,
+      "note": null,
+      "type": "criteria",
+      "x": 517.3986968994141,
+      "y": -129.53058433532715,
+      "w": 220,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_vi93ysf",
+      "label": "открытый ПН",
+      "value": null,
+      "note": null,
+      "type": "criteria",
+      "x": 452.99524307250977,
+      "y": -9.407248497009277,
+      "w": 220,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_jm984yx",
+      "label": "И",
+      "value": null,
+      "note": null,
+      "type": "logic",
+      "x": 208.4067735671997,
+      "y": -154.8577960729599,
+      "w": 42,
+      "h": 42,
+      "collapsed": false
+    }
+  ],
+  "links": [
+    {
+      "source": "n_49ur1oc",
+      "target": "n_28yjay3",
+      "predicate": "рекомендуется",
+      "label": "рекомендуется",
+      "scope": "группа",
+      "scopeName": "группа методов лечения"
+    },
+    {
+      "source": "n_28yjay3",
+      "target": "n_4we6kto",
+      "predicate": "рекомендуется",
+      "label": "рекомендуется",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_28yjay3",
+      "target": "n_8dx3vfq",
+      "predicate": "рекомендуется",
+      "label": "рекомендуется",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_28yjay3",
+      "target": "n_w51lq26",
+      "predicate": "рекомендуется",
+      "label": "рекомендуется",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_28yjay3",
+      "target": "n_jm984yx",
+      "predicate": "критерий",
+      "label": "критерий",
+      "scope": "группа",
+      "scopeName": "группа критериев"
+    },
+    {
+      "source": "n_jm984yx",
+      "target": "n_vi93ysf",
+      "predicate": "критерий симптом",
+      "label": "критерий симптом",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_jm984yx",
+      "target": "n_szuc7fa",
+      "predicate": "для",
+      "label": "для",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_jm984yx",
+      "target": "n_n9k9e7v",
+      "predicate": "критерий пациент",
+      "label": "критерий пациент",
+      "scope": "",
+      "scopeName": ""
+    }
+  ],
+  "hierarchy": {
+    "rootId": "n_49ur1oc",
+    "groups": [
+      {
+        "id": "grp_1",
+        "scope": "группа",
+        "name": "группа методов лечения",
+        "ownerId": "n_49ur1oc",
+        "linkIds": [
+          "n_49ur1oc->n_28yjay3"
+        ],
+        "nodeIds": [
+          "n_28yjay3"
+        ]
+      },
+      {
+        "id": "grp_2",
+        "scope": "группа",
+        "name": "группа критериев",
+        "ownerId": "n_28yjay3",
+        "linkIds": [
+          "n_28yjay3->n_jm984yx"
+        ],
+        "nodeIds": [
+          "n_jm984yx"
+        ]
+      }
+    ]
+  }
+}

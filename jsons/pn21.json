@@ -1,0 +1,162 @@
+{
+  "doc": {
+    "id": "",
+    "page": "",
+    "uur": "",
+    "udd": "",
+    "text": ""
+  },
+  "nodes": [
+    {
+      "id": "n_2vqpsly",
+      "label": "ПН",
+      "value": null,
+      "note": null,
+      "type": "root",
+      "x": 20.999998092651367,
+      "y": -190.99999237060547,
+      "w": 120,
+      "h": 40,
+      "collapsed": false
+    },
+    {
+      "id": "n_7c9azhz",
+      "label": "антитромботические средства",
+      "value": null,
+      "note": null,
+      "type": "criteria",
+      "x": -316.99998474121094,
+      "y": -12.999999046325684,
+      "w": 220,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_v1wxmg7",
+      "label": "И",
+      "value": null,
+      "note": null,
+      "type": "logic",
+      "x": 25.999998807907104,
+      "y": -93.00000023841858,
+      "w": 42,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_vylgzv5",
+      "label": "анастезия",
+      "value": null,
+      "note": null,
+      "type": "method",
+      "x": 100.99998474121094,
+      "y": 40.99999976158142,
+      "w": 360,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_4uiaflp",
+      "label": "профилактика ВТЭО",
+      "value": null,
+      "note": null,
+      "type": "method",
+      "x": 514.9999561309814,
+      "y": -24.999999523162842,
+      "w": 360,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_p5yosh8",
+      "label": "постоянно",
+      "value": null,
+      "note": null,
+      "type": "method",
+      "x": 342.99998474121094,
+      "y": 198.99999237060547,
+      "w": 360,
+      "h": 42,
+      "collapsed": false
+    }
+  ],
+  "links": [
+    {
+      "source": "n_2vqpsly",
+      "target": "n_v1wxmg7",
+      "predicate": "рекомендуется",
+      "label": "рекомендуется",
+      "scope": "группа",
+      "scopeName": "группа методов лечения"
+    },
+    {
+      "source": "n_v1wxmg7",
+      "target": "n_vylgzv5",
+      "predicate": "рекомендуется",
+      "label": "рекомендуется",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_v1wxmg7",
+      "target": "n_4uiaflp",
+      "predicate": "рекомендуется",
+      "label": "рекомендуется",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_v1wxmg7",
+      "target": "n_7c9azhz",
+      "predicate": "при",
+      "label": "при",
+      "scope": "группа",
+      "scopeName": "группа критериев"
+    },
+    {
+      "source": "n_vylgzv5",
+      "target": "n_p5yosh8",
+      "predicate": "применяется",
+      "label": "применяется",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_4uiaflp",
+      "target": "n_p5yosh8",
+      "predicate": "применяется",
+      "label": "применяется",
+      "scope": "",
+      "scopeName": ""
+    }
+  ],
+  "hierarchy": {
+    "rootId": "n_2vqpsly",
+    "groups": [
+      {
+        "id": "grp_1",
+        "scope": "группа",
+        "name": "группа методов лечения",
+        "ownerId": "n_2vqpsly",
+        "linkIds": [
+          "n_2vqpsly->n_v1wxmg7"
+        ],
+        "nodeIds": [
+          "n_v1wxmg7"
+        ]
+      },
+      {
+        "id": "grp_2",
+        "scope": "группа",
+        "name": "группа критериев",
+        "ownerId": "n_v1wxmg7",
+        "linkIds": [
+          "n_v1wxmg7->n_7c9azhz"
+        ],
+        "nodeIds": [
+          "n_7c9azhz"
+        ]
+      }
+    ]
+  }
+}

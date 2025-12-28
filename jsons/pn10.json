@@ -1,0 +1,274 @@
+{
+  "doc": {
+    "id": "",
+    "page": "",
+    "uur": "",
+    "udd": "",
+    "text": ""
+  },
+  "nodes": [
+    {
+      "id": "n_5w4nz8f",
+      "label": "ПН",
+      "value": null,
+      "note": null,
+      "type": "root",
+      "x": -197.938570022583,
+      "y": -130.9117555618286,
+      "w": 120,
+      "h": 40,
+      "collapsed": false
+    },
+    {
+      "id": "n_qtqzhjp",
+      "label": "И",
+      "value": null,
+      "note": null,
+      "type": "logic",
+      "x": -194.7966833114624,
+      "y": -36.655291479080915,
+      "w": 42,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_bh5kq4y",
+      "label": "фиксация",
+      "value": null,
+      "note": null,
+      "type": "method",
+      "x": -416.82300186157227,
+      "y": 90.06728029251099,
+      "w": 360,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_al9rilo",
+      "label": "открытая репозиция",
+      "value": null,
+      "note": null,
+      "type": "method",
+      "x": -39.797183990478516,
+      "y": 165.47242546081543,
+      "w": 360,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_fsvznge",
+      "label": "наложение наружных фиксирующих устройств",
+      "value": null,
+      "note": null,
+      "type": "method",
+      "x": -781.2813186645508,
+      "y": 207.3642294406891,
+      "w": 360,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_9nz8t66",
+      "label": "открытое лечение перелома с внутренней фиксацией",
+      "value": null,
+      "note": null,
+      "type": "method",
+      "x": -481.7552185058594,
+      "y": 298.4788076877594,
+      "w": 360,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_ain1a19",
+      "label": "репозиция отломков костей при переломах",
+      "value": null,
+      "note": null,
+      "type": "method",
+      "x": 10.472942590713501,
+      "y": 328.85028171539307,
+      "w": 360,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_ltpzgpa",
+      "label": "И",
+      "value": null,
+      "note": null,
+      "type": "logic",
+      "x": 351.8908042907715,
+      "y": -20.945880651474,
+      "w": 42,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_k8rl61n",
+      "label": "стабилизации костных фрагментов",
+      "value": null,
+      "note": null,
+      "type": "criteria",
+      "x": 704.8288612365723,
+      "y": 223.07363390922546,
+      "w": 220,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_co4d6a4",
+      "label": "костного сращения",
+      "value": null,
+      "note": null,
+      "type": "criteria",
+      "x": 395.87712478637695,
+      "y": 238.78304481506348,
+      "w": 220,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_54vzge9",
+      "label": "детский возраст",
+      "value": null,
+      "note": null,
+      "type": "criteria",
+      "x": 758.2409019470215,
+      "y": 90.06728601455688,
+      "w": 220,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_2me2ndi",
+      "label": "смещение ПН",
+      "value": null,
+      "note": null,
+      "type": "criteria",
+      "x": 710.0653228759766,
+      "y": -53.41199731826782,
+      "w": 220,
+      "h": 42,
+      "collapsed": false
+    }
+  ],
+  "links": [
+    {
+      "source": "n_5w4nz8f",
+      "target": "n_qtqzhjp",
+      "predicate": "рекомендуется",
+      "label": "рекомендуется",
+      "scope": "группа",
+      "scopeName": "группа методов лечения"
+    },
+    {
+      "source": "n_qtqzhjp",
+      "target": "n_bh5kq4y",
+      "predicate": "рекомендуется",
+      "label": "рекомендуется",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_qtqzhjp",
+      "target": "n_al9rilo",
+      "predicate": "рекомендуется",
+      "label": "рекомендуется",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_bh5kq4y",
+      "target": "n_fsvznge",
+      "predicate": "тоже самое",
+      "label": "тоже самое",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_bh5kq4y",
+      "target": "n_9nz8t66",
+      "predicate": "тоже самое",
+      "label": "тоже самое",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_al9rilo",
+      "target": "n_ain1a19",
+      "predicate": "тоже самое",
+      "label": "тоже самое",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_qtqzhjp",
+      "target": "n_ltpzgpa",
+      "predicate": "критерий",
+      "label": "критерий",
+      "scope": "группа",
+      "scopeName": "группа критериев"
+    },
+    {
+      "source": "n_co4d6a4",
+      "target": "n_ltpzgpa",
+      "predicate": "для",
+      "label": "для",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_ltpzgpa",
+      "target": "n_k8rl61n",
+      "predicate": "для",
+      "label": "для",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_ltpzgpa",
+      "target": "n_2me2ndi",
+      "predicate": "критерий симптом",
+      "label": "критерий симптом",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_ltpzgpa",
+      "target": "n_54vzge9",
+      "predicate": "критерий пациент",
+      "label": "критерий пациент",
+      "scope": "",
+      "scopeName": ""
+    }
+  ],
+  "hierarchy": {
+    "rootId": "n_5w4nz8f",
+    "groups": [
+      {
+        "id": "grp_1",
+        "scope": "группа",
+        "name": "группа методов лечения",
+        "ownerId": "n_5w4nz8f",
+        "linkIds": [
+          "n_5w4nz8f->n_qtqzhjp"
+        ],
+        "nodeIds": [
+          "n_qtqzhjp"
+        ]
+      },
+      {
+        "id": "grp_2",
+        "scope": "группа",
+        "name": "группа критериев",
+        "ownerId": "n_qtqzhjp",
+        "linkIds": [
+          "n_qtqzhjp->n_ltpzgpa"
+        ],
+        "nodeIds": [
+          "n_ltpzgpa"
+        ]
+      }
+    ]
+  }
+}

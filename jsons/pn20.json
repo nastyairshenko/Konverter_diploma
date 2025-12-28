@@ -1,0 +1,194 @@
+{
+  "doc": {
+    "id": "",
+    "page": "",
+    "uur": "",
+    "udd": "",
+    "text": ""
+  },
+  "nodes": [
+    {
+      "id": "n_2vqpsly",
+      "label": "ПН",
+      "value": null,
+      "note": null,
+      "type": "root",
+      "x": 1.9999961853027344,
+      "y": -130.99999237060547,
+      "w": 120,
+      "h": 40,
+      "collapsed": false
+    },
+    {
+      "id": "n_3jncxy4",
+      "label": "мероприятия",
+      "value": null,
+      "note": null,
+      "type": "method",
+      "x": 44.000009536743164,
+      "y": 33.999993085861206,
+      "w": 360,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_wltx57x",
+      "label": "остеосинтез ПН",
+      "value": null,
+      "note": null,
+      "type": "method",
+      "x": 581.9999866485596,
+      "y": -35.99999928474426,
+      "w": 360,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_d3a349c",
+      "label": "И",
+      "value": null,
+      "note": null,
+      "type": "logic",
+      "x": 39,
+      "y": 166.99999332427979,
+      "w": 42,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_7c9azhz",
+      "label": "профилактика ВТЭО",
+      "value": null,
+      "note": null,
+      "type": "criteria",
+      "x": 413.99998474121094,
+      "y": 341.9999780654907,
+      "w": 220,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_dwelyzb",
+      "label": "активное кровотечение",
+      "value": null,
+      "note": null,
+      "type": "criteria",
+      "x": 38.00000286102295,
+      "y": 444.9999781847,
+      "w": 220,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_4sgwn4v",
+      "label": "обычная или ожидаемая двигательная активность",
+      "value": null,
+      "note": null,
+      "type": "criteria",
+      "x": -296,
+      "y": 266.9999785423279,
+      "w": 220,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_h1dyteo",
+      "label": "НЕТ",
+      "value": null,
+      "note": null,
+      "type": "logic",
+      "x": 27.999999284744263,
+      "y": 339.9999769926071,
+      "w": 42,
+      "h": 42,
+      "collapsed": false
+    }
+  ],
+  "links": [
+    {
+      "source": "n_2vqpsly",
+      "target": "n_3jncxy4",
+      "predicate": "рекомендуется",
+      "label": "рекомендуется",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_3jncxy4",
+      "target": "n_wltx57x",
+      "predicate": "следующий шаг",
+      "label": "следующий шаг",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_3jncxy4",
+      "target": "n_d3a349c",
+      "predicate": "критерий",
+      "label": "критерий",
+      "scope": "группа",
+      "scopeName": "группа критериев"
+    },
+    {
+      "source": "n_d3a349c",
+      "target": "n_h1dyteo",
+      "predicate": "критерий",
+      "label": "критерий",
+      "scope": "подгруппа",
+      "scopeName": "подгруппа критериев"
+    },
+    {
+      "source": "n_h1dyteo",
+      "target": "n_dwelyzb",
+      "predicate": "критерий симптом",
+      "label": "критерий симптом",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_d3a349c",
+      "target": "n_7c9azhz",
+      "predicate": "для",
+      "label": "для",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_d3a349c",
+      "target": "n_4sgwn4v",
+      "predicate": "для",
+      "label": "для",
+      "scope": "",
+      "scopeName": ""
+    }
+  ],
+  "hierarchy": {
+    "rootId": "n_2vqpsly",
+    "groups": [
+      {
+        "id": "grp_1",
+        "scope": "группа",
+        "name": "группа критериев",
+        "ownerId": "n_3jncxy4",
+        "linkIds": [
+          "n_3jncxy4->n_d3a349c"
+        ],
+        "nodeIds": [
+          "n_d3a349c"
+        ]
+      },
+      {
+        "id": "grp_2",
+        "scope": "подгруппа",
+        "name": "подгруппа критериев",
+        "ownerId": "n_d3a349c",
+        "linkIds": [
+          "n_d3a349c->n_h1dyteo"
+        ],
+        "nodeIds": [
+          "n_h1dyteo"
+        ]
+      }
+    ]
+  }
+}

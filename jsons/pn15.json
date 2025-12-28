@@ -1,0 +1,162 @@
+{
+  "doc": {
+    "id": "",
+    "page": "",
+    "uur": "",
+    "udd": "",
+    "text": ""
+  },
+  "nodes": [
+    {
+      "id": "n_qjgmjlu",
+      "label": "ПН",
+      "value": null,
+      "note": null,
+      "type": "root",
+      "x": 3405,
+      "y": 90,
+      "w": 120,
+      "h": 40,
+      "collapsed": false
+    },
+    {
+      "id": "n_cpuur6t",
+      "label": "хирургическая антибиотекотерапия инфекции области хирургического вмешастельства",
+      "value": null,
+      "note": null,
+      "type": "method",
+      "x": 3345.566650390625,
+      "y": 223.7587127685547,
+      "w": 360,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_tl7plhb",
+      "label": "ИЛИ",
+      "value": null,
+      "note": null,
+      "type": "logic",
+      "x": 3102.2421642541885,
+      "y": 321.92036056518555,
+      "w": 42,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_8cmyips",
+      "label": "снижение риска развитие инфекционных осложнений",
+      "value": null,
+      "note": null,
+      "type": "criteria",
+      "x": 2665.5115394592285,
+      "y": 419.99365615844727,
+      "w": 220,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_s06a65s",
+      "label": "закрытый ПН",
+      "value": null,
+      "note": null,
+      "type": "criteria",
+      "x": 2946.144598007202,
+      "y": 494.3659944534302,
+      "w": 220,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_4dajvqt",
+      "label": "антибактериальный препарат",
+      "value": null,
+      "note": null,
+      "type": "method",
+      "x": 3730.7255902290344,
+      "y": 368.2419216632843,
+      "w": 360,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_q4td603",
+      "label": "однократное предоперационное введение",
+      "value": null,
+      "note": null,
+      "type": "method",
+      "x": 3432.0593490600586,
+      "y": 514.4170970916748,
+      "w": 360,
+      "h": 42,
+      "collapsed": false
+    }
+  ],
+  "links": [
+    {
+      "source": "n_tl7plhb",
+      "target": "n_8cmyips",
+      "predicate": "для",
+      "label": "для",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_tl7plhb",
+      "target": "n_s06a65s",
+      "predicate": "критерий симптом",
+      "label": "критерий симптом",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_qjgmjlu",
+      "target": "n_cpuur6t",
+      "predicate": "рекомендуется",
+      "label": "рекомендуется",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_cpuur6t",
+      "target": "n_tl7plhb",
+      "predicate": "критерий",
+      "label": "критерий",
+      "scope": "группа",
+      "scopeName": "группа критериев"
+    },
+    {
+      "source": "n_cpuur6t",
+      "target": "n_4dajvqt",
+      "predicate": "используется",
+      "label": "используется",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_cpuur6t",
+      "target": "n_q4td603",
+      "predicate": "применяется",
+      "label": "применяется",
+      "scope": "",
+      "scopeName": ""
+    }
+  ],
+  "hierarchy": {
+    "rootId": "n_qjgmjlu",
+    "groups": [
+      {
+        "id": "grp_1",
+        "scope": "группа",
+        "name": "группа критериев",
+        "ownerId": "n_cpuur6t",
+        "linkIds": [
+          "n_cpuur6t->n_tl7plhb"
+        ],
+        "nodeIds": [
+          "n_tl7plhb"
+        ]
+      }
+    ]
+  }
+}

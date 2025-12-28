@@ -16,6 +16,7 @@ function escapeHtml(str) {
 function escapeRegex(str) {
   return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
+
 function highlightRecText(node) {
   const text = recTextEl ? (recTextEl.innerText || "") : "";
   if (!recTextEl) return;
@@ -34,7 +35,8 @@ function highlightRecText(node) {
     recTextEl.innerHTML = escapeHtml(text);
     return;
   }
-
+    // ✅ подтянуть связанные значения/уточнения (как отдельные вершины)
+  linkedTermsByPredicates(node, ["значение", "уточнение"]).forEach(t => terms.push(t));
   const pattern = "(" + terms.map(escapeRegex).join("|") + ")";
   const re = new RegExp(pattern, "gi");
 
@@ -49,6 +51,29 @@ function highlightRecText(node) {
   result += escapeHtml(text.slice(lastIndex));
   recTextEl.innerHTML = result;
 }
+
+function linkedTermsByPredicates(node, predicatesLower) {
+  if (!node) return [];
+
+  const terms = [];
+  const preds = new Set((predicatesLower || []).map(s => String(s).toLowerCase()));
+
+  for (const l of links) {
+    const pred = String((l.predicate || l.label || "")).trim().toLowerCase();
+    if (!preds.has(pred)) continue;
+
+    // ✅ берем соседа вне зависимости от направления
+    let other = null;
+    if (l.source?.id === node.id) other = l.target;
+    else if (l.target?.id === node.id) other = l.source;
+
+    if (other?.label) terms.push(String(other.label).trim());
+  }
+
+  // уникально
+  return Array.from(new Set(terms)).filter(t => t && t.length > 1);
+}
+
 
 // ======= данные графа =======
 const nodes = [];
@@ -403,19 +428,62 @@ function computeVisible() {
   return { visibleNodes, visibleLinks };
 }
 
-function redrawLinks() {
-  linkGroup
-    .selectAll("line")
-    .attr("x1", d => d.source.x)
-    .attr("y1", d => d.source.y)
-    .attr("x2", d => d.target.x)
-    .attr("y2", d => d.target.y);
+function intersectRect(node, x1, y1, x2, y2) {
+  const w = node.w / 2;
+  const h = node.h / 2;
 
-  linkLabelGroup
-    .selectAll("text")
-    .attr("x", d => (d.source.x + d.target.x) / 2)
-    .attr("y", d => (d.source.y + d.target.y) / 2 - 4);
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+
+  const absDx = Math.abs(dx);
+  const absDy = Math.abs(dy);
+
+  let scale;
+  if (absDx / w > absDy / h) {
+    scale = w / absDx;
+  } else {
+    scale = h / absDy;
+  }
+
+  return {
+    x: node.x + dx * scale,
+    y: node.y + dy * scale
+  };
 }
+
+
+function redrawLinks() {
+  linkGroup.selectAll("line")
+    .each(function(d) {
+      const s = intersectRect(
+        d.source,
+        d.source.x,
+        d.source.y,
+        d.target.x,
+        d.target.y
+      );
+
+      const t = intersectRect(
+        d.target,
+        d.target.x,
+        d.target.y,
+        d.source.x,
+        d.source.y
+      );
+
+      d3.select(this)
+        .attr("x1", s.x)
+        .attr("y1", s.y)
+        .attr("x2", t.x)
+        .attr("y2", t.y);
+    });
+
+  linkLabelGroup.selectAll("text")
+    .attr("x", d => (d.source.x + d.target.x) / 2)
+    .attr("y", d => (d.source.y + d.target.y) / 2 - 6);
+}
+
+
 
 function redrawSelection() {
   nodeGroup.selectAll(".node").classed("selected", d => d === selectedNode);
@@ -580,20 +648,6 @@ function updateGraph() {
       pushHistory();
       d.label = lbl || d.label;
       if (d.type === "logic") d.label = normalizeLogicLabel(d.label);
-
-      if (d.type === "criteria") {
-        let val = prompt("Значение критерия (опционально):", d.value || "");
-        if (val !== null) {
-          val = val.trim();
-          d.value = val || null;
-        }
-        let nt = prompt("Уточнение (опционально):", d.note || "");
-        if (nt !== null) {
-          nt = nt.trim();
-          d.note = nt || null;
-        }
-      }
-
       updateGraph();
     });
 
@@ -636,13 +690,8 @@ function updateGraph() {
     .select("text.value-label")
     .attr("text-anchor", "middle")
     .attr("dy", "1.2em")
-    .text(d => {
-      if (d.type !== "criteria") return "";
-      const v = d.value ? String(d.value) : "";
-      const n = d.note ? String(d.note) : "";
-      if (v && n) return v + " · " + n;
-      return v || n || "";
-    });
+    .text(d => "");
+
 
   redrawSelection();
   redrawLinks();
@@ -729,19 +778,6 @@ function addNodeByType(type) {
   let value = null;
   let note = null;
 
-  if (type === "criteria") {
-    let val = prompt("Значение критерия (опционально):", "");
-    if (val !== null) {
-      val = val.trim();
-      if (val) value = val;
-    }
-    let nt = prompt("Уточнение (опционально):", "");
-    if (nt !== null) {
-      nt = nt.trim();
-      if (nt) note = nt;
-    }
-  }
-
   pushHistory();
   const s = defaultNodeSize(type, type === "criteria" && (!!value || !!note));
   const n = {
@@ -760,6 +796,7 @@ function addNodeByType(type) {
   if (type === "root" && !rootNodeId) rootNodeId = n.id;
   updateGraph();
 }
+
 
 const addRootBtn = document.getElementById("add-root-btn");
 const addCriteriaBtn = document.getElementById("add-criteria-btn");
@@ -1361,7 +1398,7 @@ if (exportXlsxBtn) {
     try {
       const graphWH = buildGraphWithHierarchyJSON();
       const graphOnly = normalizeToGraphOnly(graphWH);
-      const triples = buildTriplesFromGraph(graphWH);
+      const triples = buildTriplesFromGraph(graphOnly);
 
       const rows = [
         ["объект", "субъект", "предикат"],
@@ -2006,185 +2043,1098 @@ function normalizeToGraphOnly(payload) {
 // ======= TRIPLES (правильные по graph) =======
 
 function buildTriplesFromGraph(graph) {
-  const nodesById = new Map((graph.nodes || []).map(n => [n.id, n]));
-  const labelOf = (id) => (nodesById.get(id)?.label || id || "").trim();
-  const typeOf = (id) => (nodesById.get(id)?.type || "").trim();
+  // Универсальный конвертер JSON -> тройки.
+  // Ключевое: логика МЕТОДОВ и логика КРИТЕРИЕВ разделены, направление стрелок не важно.
+  if (!graph) return [];
 
-  // outgoing links by source
+  const nodes = graph.nodes || [];
+  const links = graph.links || [];
+  const nodeById = new Map(nodes.map(n => [n.id, n]));
+
+  // индексы рёбер
   const out = new Map();
-  (graph.links || []).forEach(l => {
-    if (!out.has(l.source)) out.set(l.source, []);
-    out.get(l.source).push(l);
+  const inc = new Map();
+  function pushMap(m, k, v) {
+    if (!m.has(k)) m.set(k, []);
+    m.get(k).push(v);
+  }
+  links.forEach(l => {
+    pushMap(out, l.source, l);
+    pushMap(inc, l.target, l);
   });
 
-  const triples = [];
-
-  // 0) диагноз: (ПН -> пациенты -> диагноз)
-  // если не нужно — просто удали этот блок
-  const root = (graph.nodes || []).find(n => n.type === "root") || (graph.nodes || [])[0];
-  if (root) {
-    triples.push({ объект: labelOf(root.id), субъект: "пациенты", предикат: "диагноз" });
+  function allEdgesOf(id) {
+    return [...(out.get(id) || []), ...(inc.get(id) || [])];
+  }
+  function otherEnd(l, id) {
+    return l.source === id ? l.target : l.source;
   }
 
-  // helper: find container method for any node (logic or method)
-  // Идея: поднимаемся вверх по входящим ребрам, пока не найдём method,
-  // который "рекомендуется" от root (или просто первый method)
-  const incoming = new Map();
-  (graph.links || []).forEach(l => {
-    if (!incoming.has(l.target)) incoming.set(l.target, []);
-    incoming.get(l.target).push(l);
+  function typeOf(id) {
+    const n = nodeById.get(id);
+    return (n && n.type) ? n.type : "";
+  }
+  function rawLabelOf(id) {
+    const n = nodeById.get(id);
+    return (n && n.label != null) ? String(n.label) : String(id);
+  }
+  function clean(s) {
+    return String(s ?? "").replace(/\u00A0/g, " ").trim();
+  }
+  function predOf(l) {
+    return clean(l.predicate || l.label || "");
+  }
+  function predLow(l) {
+    return predOf(l).toLowerCase();
+  }
+
+  function rootShortLabel(rootId) {
+    const lbl = clean(rawLabelOf(rootId));
+    const m = lbl.match(/\(([^)]+)\)/);
+    return (m && m[1]) ? clean(m[1]) : lbl;
+  }
+
+  const rootId = (graph.hierarchy && graph.hierarchy.rootId)
+    ? graph.hierarchy.rootId
+    : (nodes.find(n => n.type === "root")?.id || (nodes[0] ? nodes[0].id : null));
+  const ROOT_SHORT = rootId ? rootShortLabel(rootId) : "";
+
+  function displayLabel(id) {
+    const t = typeOf(id);
+    let lbl = clean(rawLabelOf(id));
+    if (t === "root") return ROOT_SHORT || lbl;
+    if (t === "method" && lbl) return lbl[0].toLowerCase() + lbl.slice(1);
+    return lbl;
+  }
+  function logicOp(id) {
+    return clean(displayLabel(id)).toUpperCase(); // И / ИЛИ / НЕТ
+  }
+
+  const isMethod = (id) => typeOf(id) === "method";
+  const isCriteria = (id) => typeOf(id) === "criteria";
+  const isLogic = (id) => typeOf(id) === "logic";
+
+  // ======= ИЕРАРХИЯ (группы/подгруппы) =======
+  const groups = (graph.hierarchy && Array.isArray(graph.hierarchy.groups)) ? graph.hierarchy.groups : [];
+  const parentOf = new Map(); // childNodeId -> ownerId
+  const scopedLinkIds = new Set();
+  groups.forEach(g => {
+    (g.nodeIds || []).forEach(nid => parentOf.set(nid, g.ownerId));
+    (g.linkIds || []).forEach(lid => scopedLinkIds.add(lid));
   });
 
-  function findRecommendedMethodAbove(startId) {
-    const seen = new Set();
+  function linkIdOf(l) { return `${l.source}->${l.target}`; }
+  function isScopedEdge(l) {
+    return (l.scope === "группа" || l.scope === "подгруппа" || scopedLinkIds.has(linkIdOf(l)));
+  }
+
+  // ======= Разделение рёбер: методы vs критерии =======
+  function isCriteriaPredicate(p0) {
+    const p = clean(p0).toLowerCase();
+    return p === "критерий" || p.startsWith("критерий") || p === "для" || p.startsWith("для") || p === "при" || p.startsWith("при");
+  }
+
+  function isStructuralEdge(l) {
+    if (isScopedEdge(l)) return true;
+    const p = predLow(l);
+    if (p === "" || p.includes("рекомендуется")) return true;
+
+    // "используется" — структурное ТОЛЬКО для method<->logic
+    if (p.includes("используется")) {
+      const sT = typeOf(l.source);
+      const tT = typeOf(l.target);
+      return (sT === "logic" || tT === "logic");
+    }
+    return false;
+  }
+
+  // методные "структурные" рёбра (обход выражений методов)
+  function isMethodEdge(l) {
+    const p = predLow(l);
+    // Критериальные предикаты исключаем из методного слоя ТОЛЬКО если они реально ведут к criteria-узлу.
+    // Предикат "критерий" в методном слое нередко используется как структурная связь logic->logic
+    // (контейнер/подконтейнер методов). Если второй конец НЕ criteria — это допустимая методная связь.
+    if (isCriteriaPredicate(p)) {
+      const aT = typeOf(l.source), bT = typeOf(l.target);
+      if (aT === "criteria" || bT === "criteria") return false;
+    }
+
+    // scope-ребра могут соединять методную и критериальную логику — это надо разделить
+    if (isScopedEdge(l)) {
+      const aT = typeOf(l.source), bT = typeOf(l.target);
+
+      // если логический узел "критериальный" — не пускаем его в методный слой
+      if (aT === "logic" && logicKind(l.source) === "criteria") return false;
+      if (bT === "logic" && logicKind(l.target) === "criteria") return false;
+
+      // если logic-logic — принимаем только если оба logic методные
+      if (aT === "logic" && bT === "logic") {
+        return logicKind(l.source) === "method" && logicKind(l.target) === "method";
+      }
+
+      // scope для методов: допускаем root/method/logic(методный)
+      return (
+        aT === "root" || bT === "root" ||
+        aT === "method" || bT === "method" ||
+        aT === "logic" || bT === "logic"
+      );
+    }
+
+    // legacy: пусто / используется / рекомендуется
+    return p === "" || p.includes("используется") || p.includes("рекомендуется");
+  }
+
+  // определяем "тип" логического узла по окружению: method|criteria
+  const logicKindCache = new Map();
+  function logicKind(id) {
+    if (!id || typeOf(id) !== "logic") return null;
+    if (logicKindCache.has(id)) return logicKindCache.get(id);
+
+    let mScore = 0, cScore = 0;
+    for (const e of allEdgesOf(id)) {
+      const p = predLow(e);
+      const o = otherEnd(e, id);
+      const ot = typeOf(o);
+
+      // критерийный сигнал: критерийные предикаты или сосед-criteria
+      if (isCriteriaPredicate(p) || ot === "criteria") cScore++;
+
+      // методный сигнал: сосед-method или "структурные" method-предикаты
+      if (!isCriteriaPredicate(p) && (ot === "method" || p === "" || p.includes("используется") || p.includes("рекомендуется"))) {
+        mScore++;
+      }
+    }
+
+    // если смешанный — считаем критериальным (безопаснее, чтобы не порождать лишние method-связи)
+    const kind = (cScore > 0 && mScore === 0) ? "criteria"
+      : (mScore > 0 && cScore === 0) ? "method"
+      : (cScore >= mScore) ? "criteria" : "method";
+
+    logicKindCache.set(id, kind);
+    return kind;
+  }
+
+  // критериальные рёбра (обход дерева критериев)
+  function isCriteriaEdge(l) {
+    const p0 = predOf(l);
+    if (isCriteriaPredicate(p0)) return true;
+
+    if (isScopedEdge(l)) {
+      const aT = typeOf(l.source), bT = typeOf(l.target);
+
+      // если логический узел "методный" — не пускаем его в критериальный слой
+      if (aT === "logic" && logicKind(l.source) === "method") return false;
+      if (bT === "logic" && logicKind(l.target) === "method") return false;
+
+      // scope для критериев: допускаем criteria/logic(критериальный)
+      return (
+        aT === "criteria" || bT === "criteria" ||
+        aT === "logic" || bT === "logic"
+      );
+    }
+    return false;
+  }
+
+  // ======= Служебные обходы: методы =======
+  function collectLeafMethods(startId, excludeId = null) {
+    const res = new Set();
     const q = [startId];
+    const seen = new Set();
     while (q.length) {
       const cur = q.shift();
       if (!cur || seen.has(cur)) continue;
       seen.add(cur);
 
-      const inc = incoming.get(cur) || [];
-      for (const l of inc) {
-        const s = l.source;
-        if (typeOf(s) === "method") {
-          // если этот method "рекомендуется" от root — приоритет
-          const inc2 = incoming.get(s) || [];
-          const hasRec = inc2.some(x => (x.predicate || x.label || "").trim().toLowerCase().includes("рекомендуется"));
-          if (hasRec) return s;
-          // иначе запомним как fallback
-          return s;
-        }
-        // идём дальше вверх
-        q.push(s);
+      if (isMethod(cur)) {
+        if (!excludeId || cur !== excludeId) res.add(cur);
+        continue;
       }
-    }
-    return null;
-  }
 
-  // 1) Рекомендуется: root -> method  ==>  (method, root, рекомендуется)
-  (graph.links || []).forEach(l => {
-    const pred = (l.predicate || l.label || "").trim();
-    if (!pred) return;
-
-    if (pred.toLowerCase().includes("рекомендуется")) {
-      triples.push({
-        объект: labelOf(l.target),
-        субъект: labelOf(l.source),
-        предикат: "рекомендуется"
-      });
-    }
-  });
-
-  // 2) Критерии: method -> criteria (критерий пациент/симптом/время/возможность/для/при)
-  (graph.links || []).forEach(l => {
-    const pred = (l.predicate || l.label || "").trim();
-    if (!pred) return;
-
-    const sType = typeOf(l.source);
-    const tType = typeOf(l.target);
-
-    if (tType === "criteria" && pred.toLowerCase().includes("критерий")) {
-      // ожидаемый формат: критерий (объект) -> метод (субъект)
-      triples.push({
-        объект: labelOf(l.target),
-        субъект: labelOf(l.source),
-        предикат: pred
-      });
-    }
-  });
-
-  // 3) Используется: все method-листья под логикой должны ссылаться на "контейнерный method"
-  // Пример из твоего graph: n_sdfacqn(И) -> n_770foib(остеосинтез) используется (контейнер)
-  // А n_vz4q4vw(ИЛИ) -> методы используется (они должны стать: метод -> остеосинтез используется)
-  function collectLeafMethodsUnder(nodeId) {
-    const seen = new Set();
-    const res = new Set();
-    const st = [nodeId];
-    while (st.length) {
-      const cur = st.pop();
-      if (!cur || seen.has(cur)) continue;
-      seen.add(cur);
-
-      const links = out.get(cur) || [];
-      for (const l of links) {
-        const pred = (l.predicate || l.label || "").trim().toLowerCase();
-        if (!pred.includes("используется")) continue;
-
-        const tgt = l.target;
-        const tType = typeOf(tgt);
-        if (tType === "method") res.add(tgt);
-        if (tType === "logic") st.push(tgt);
+      for (const l of allEdgesOf(cur)) {
+        if (!isMethodEdge(l)) continue;
+        q.push(otherEnd(l, cur));
       }
     }
     return [...res];
   }
 
-  // для каждого логического узла найдём его container method и добавим "используется" для всех листьев
-  (graph.nodes || []).filter(n => n.type === "logic").forEach(ln => {
-    const containerMethodId = findRecommendedMethodAbove(ln.id);
-    if (!containerMethodId) return;
+  // smart: поддержка "инвертированных" групп, когда ownerId=logic, а method лежит в nodeIds группы
+  const logicContainsMethods = new Map(); // logicId -> methodIds
+  groups.forEach(g => {
+    const owner = g.ownerId;
+    if (!isLogic(owner)) return;
+    const arr = logicContainsMethods.get(owner) || [];
+    (g.nodeIds || []).forEach(nid => { if (isMethod(nid)) arr.push(nid); });
+    if (arr.length) logicContainsMethods.set(owner, [...new Set(arr)]);
+  });
 
-    const leaves = collectLeafMethodsUnder(ln.id);
-    leaves.forEach(mId => {
-      // не дублируем: если уже есть прямой "method->criteria" и т.п. — это другое
-      triples.push({
-        объект: labelOf(mId),
-        субъект: labelOf(containerMethodId),
-        предикат: "используется"
+  function collectLeafMethodsSmart(startId) {
+    if (!startId) return [];
+    if (isMethod(startId)) {
+      const owner = parentOf.get(startId);
+      if (owner && isLogic(owner)) {
+        const ms = collectLeafMethods(owner, null);
+        const others = ms.filter(x => x !== startId);
+        if (others.length) return others;
+      }
+      return [startId];
+    }
+    return collectLeafMethods(startId, null);
+  }
+
+  function containerMethodForLogic(logicId, recommendedMethodsSet) {
+    // Возвращает "контейнерный" метод для логического узла (И/ИЛИ/НЕТ) в методном слое.
+    // Должно работать при любой ориентации стрелок, и при разных вариантах hierarchy.
+    // 1) инверт: logic содержит method (через hierarchy.groups)
+    const inside = logicContainsMethods.get(logicId) || [];
+    if (inside.length) {
+      const pref = inside.find(x => recommendedMethodsSet && recommendedMethodsSet.has(x));
+      return pref || inside[0];
+    }
+
+    // 2) owner-цепочка в hierarchy.groups (logic -> ... -> method)
+    let cur = logicId;
+    const seen = new Set();
+    while (cur && !seen.has(cur)) {
+      seen.add(cur);
+      cur = parentOf.get(cur) || null;
+      if (cur && isMethod(cur)) {
+        if (recommendedMethodsSet && recommendedMethodsSet.has(cur)) return cur;
+        return cur;
+      }
+    }
+
+    // 3) BFS по methodEdge вокруг logicId (направление не важно)
+    // Ищем ближайший method; приоритет - рекомендованный.
+    const q = [{ id: logicId, dist: 0 }];
+    const seen2 = new Set([logicId]);
+    let bestAny = null;
+
+    while (q.length) {
+      const { id } = q.shift();
+      for (const l of allEdgesOf(id)) {
+        if (!isMethodEdge(l)) continue;
+        const o = otherEnd(l, id);
+        if (!o || seen2.has(o)) continue;
+        seen2.add(o);
+
+        if (isMethod(o)) {
+          // Контейнером считаем только метод, который реально содержит другие методы (не leaf).
+          const sub = collectLeafMethods(o).filter(x => x !== o);
+          if (sub.length > 0) {
+            if (recommendedMethodsSet && recommendedMethodsSet.has(o)) return o;
+            if (!bestAny) bestAny = o;
+          }
+          // leaf-методы (как "анастезия") контейнером НЕ считаем
+        }
+        q.push({ id: o, dist: 0 });
+      }
+    }
+
+    return bestAny;
+  }
+
+  // ======= Служебные обходы: критерии =======
+  function leafCriteriaUnderWithFlags(startId) {
+    // IMPORTANT: это КРИТЕРИАЛЬНЫЙ слой, ходим только по isCriteriaEdge
+    const res = [];
+    // viaPred: предикат ребра, по которому мы пришли к criteria (важно: не схлопывать несколько "при")
+    const q = [{ id: startId, not: false, viaPred: "" }];
+    const seen = new Set();
+    while (q.length) {
+      const { id, not, viaPred } = q.shift();
+      // один и тот же criteria может быть достижим по разным предикатам (например, несколько "при")
+      const sk = `${id}|||${clean(viaPred).toLowerCase()}|||${not ? 1 : 0}`;
+      if (!id || seen.has(sk)) continue;
+      seen.add(sk);
+
+      const t = typeOf(id);
+      const nextNot = not || (t === "logic" && logicOp(id) === "НЕТ");
+
+      if (t === "criteria") {
+        const lbl = clean(displayLabel(id));
+        // НИЧЕГО НЕ ИГНОРИРУЕМ: все вершины и критерии должны экспортироваться
+        res.push({ id, lbl, not: nextNot, pred: clean(viaPred) });
+        continue;
+      }
+
+      for (const l of allEdgesOf(id)) {
+        if (!isCriteriaEdge(l)) continue;
+
+        // не поднимаемся вверх из подгруппы (НЕТ/другая логика) к родителю через scoped-связь
+        // иначе NOT "заражает" соседние критерии, которые не находятся под НЕТ
+        const otherTmp = otherEnd(l, id);
+        // В некоторых json target/source могут быть как объектами, так и строковыми id.
+        // Если проверять только l.target.id, можно не распознать входящую scoped-связь
+        // и тогда НЕТ "заражает" соседние критерии, которые не находятся под НЕТ.
+        const isIncomingToCurrent = (l.target === id) || (l.target && l.target.id === id);
+        if (isScopedEdge(l) && isLogic(otherTmp) && isIncomingToCurrent) continue;
+
+        const nxt = otherEnd(l, id);
+        const p = predOf(l);
+        // предикат фиксируем на шаге, когда реально попадаем на criteria
+        q.push({ id: nxt, not: nextNot, viaPred: (isCriteria(nxt) ? p : viaPred) });
+      }
+    }
+    return res;
+  }
+
+  function criterionPredicateFor(criteriaId) {
+    // берём по любому критериальному ребру criteria<->(logic|method)
+    const cand = [];
+    for (const l of allEdgesOf(criteriaId)) {
+      if (!isCriteriaEdge(l)) continue;
+      const o = otherEnd(l, criteriaId);
+      const oT = typeOf(o);
+      if (oT === "logic" || oT === "method") cand.push(l);
+    }
+    if (!cand.length) return "критерий";
+
+    const rank = (p) => {
+      const s = clean(p).toLowerCase();
+      if (s.startsWith("критерий симптом")) return 1;
+      if (s.startsWith("критерий пациент")) return 2;
+      if (s.startsWith("для")) return 3;
+      if (s.startsWith("при")) return 4;
+      if (s.startsWith("критерий")) return 5;
+      return 9;
+    };
+    cand.sort((a, b) => rank(predOf(a)) - rank(predOf(b)));
+    return predOf(cand[0]) || "критерий";
+  }
+
+  // ======= 0) базовые тройки =======
+  const triples = [];
+  if (ROOT_SHORT) triples.push({ объект: ROOT_SHORT, субъект: "пациенты", предикат: "диагноз" });
+
+  // ======= 1) рекомендации (направление не важно) =======
+  const recommendedTargets = [];
+  if (rootId != null) {
+    for (const l of allEdgesOf(rootId)) {
+      if (!predLow(l).includes("рекомендуется")) continue;
+      recommendedTargets.push(otherEnd(l, rootId));
+    }
+  }
+
+  const recommendedMethods = new Set();
+  recommendedTargets.forEach(tgt => {
+    if (isMethod(tgt)) recommendedMethods.add(tgt);
+    else collectLeafMethodsSmart(tgt).forEach(m => recommendedMethods.add(m));
+  });
+
+  // Если в графе нет явных рёбер "рекомендуется" (или root не задан),
+  // экспорт всё равно должен работать: берём ВСЕ методы как базовый набор.
+  if (recommendedMethods.size === 0) {
+    nodes.forEach(n => { if (n.type === "method") recommendedMethods.add(n.id); });
+  }
+
+  [...recommendedMethods].forEach(mId => {
+    triples.push({ объект: displayLabel(mId), субъект: ROOT_SHORT, предикат: "рекомендуется" });
+  });
+  // 1.b) Прямые связи между методами (например: "применяется", "осуществляется" и т.п.)
+  // Не путать с "используется" (это связи leaf->контейнер), и не включать критерии/служебные предикаты.
+  links.forEach(l => {
+    const s = l.source, t = l.target;
+    if (!isMethod(s) || !isMethod(t)) return;
+    const p0 = clean(predOf(l));
+    const p = p0.toLowerCase();
+    if (!p) return;
+    // allow method-method рекомендуется edges
+    if (p.startsWith("критерий")) return;
+    if (p === "для" || p.startsWith("для ")) return;
+    if (p === "при" || p.startsWith("при ")) return;
+    if (p === "значение" || p === "уточнение") return;
+
+    triples.push({ объект: displayLabel(t), субъект: displayLabel(s), предикат: p0 });
+  });
+
+
+  // ======= 2) методы: "используется" =======
+  function expressionRootsForMethod(methodId) {
+    const roots = new Set();
+
+    // method <-> logic по methodEdge
+    for (const l of allEdgesOf(methodId)) {
+      if (!isMethodEdge(l)) continue;
+      const o = otherEnd(l, methodId);
+      if (isLogic(o)) roots.add(o);
+    }
+
+    // инверт: logic содержит method
+    for (const [logicId, ms] of logicContainsMethods.entries()) {
+      if (ms.includes(methodId)) roots.add(logicId);
+    }
+
+    return [...roots];
+  }
+
+  // 2.1 "используется": генерируем ТОЛЬКО если метод действительно контейнер для logic
+  [...recommendedMethods].forEach(containerMethodId => {
+    const roots = expressionRootsForMethod(containerMethodId);
+    roots.forEach(rid => {
+      const containerForRid = containerMethodForLogic(rid, recommendedMethods);
+      if (containerForRid !== containerMethodId) return; // не контейнер -> не "используется"
+      collectLeafMethods(rid, containerMethodId).forEach(childId => {
+        triples.push({ объект: displayLabel(childId), субъект: displayLabel(containerMethodId), предикат: "используется" });
       });
     });
   });
 
-  // 4) Логические связи между методами:
-  // для каждой logic-вершины берём дочерние "ветки" (method или logic),
-  // собираем листья, и делаем связи МЕЖДУ ветками (кросс-продукт)
-  function logicPredicate(label) {
-    const s = (label || "").trim().toUpperCase();
-    if (s === "И") return "связь И";
-    if (s === "ИЛИ") return "связь ИЛИ";
-    if (s === "НЕТ") return "связь НЕТ";
-    return null;
-  }
+  // 2.2 ВАЖНО: больше НЕ строим синтетические связи между методами ("связь И/ИЛИ/НЕТ").
+  // Пользовательское правило: "то, что видим на линии — то и выводим".
+  // Поэтому в тройки идут только реальные рёбра графа (см. 1.b и 3.*).
+  const mmEdges = new Map();
 
-  function leafGroupsOfLogic(logicId) {
-    const links = out.get(logicId) || [];
-    const groups = [];
-    for (const l of links) {
-      const pred = (l.predicate || l.label || "").trim().toLowerCase();
-      if (!pred.includes("используется")) continue;
+  // релевантные logic для методов: достижимы из выражений рекомендованных методов, и реально имеют method-листья
+  const relevantLogicMethods = new Set();
+  function walkMethodLogic(startId) {
+    const q = [startId];
+    const seen = new Set();
+    while (q.length) {
+      const cur = q.shift();
+      if (!cur || seen.has(cur)) continue;
+      seen.add(cur);
 
-      const t = l.target;
-      const tType = typeOf(t);
-      if (tType === "method") groups.push([t]);
-      else if (tType === "logic") groups.push(collectLeafMethodsUnder(t));
+      if (isLogic(cur)) {
+        // добавляем только если под ним реально есть методы
+        if (collectLeafMethods(cur, null).length) relevantLogicMethods.add(cur);
+      }
+
+      for (const l of allEdgesOf(cur)) {
+        if (!isMethodEdge(l)) continue;
+        q.push(otherEnd(l, cur));
+      }
     }
-    return groups.filter(g => g.length);
   }
 
-  (graph.nodes || []).filter(n => n.type === "logic").forEach(ln => {
-    const p = logicPredicate(ln.label);
-    if (!p) return;
+  [...recommendedMethods].forEach(mId => {
+    expressionRootsForMethod(mId).forEach(rid => walkMethodLogic(rid));
+  });
 
-    const groups = leafGroupsOfLogic(ln.id);
-    // связи только между группами (не внутри одной)
-    for (let i = 0; i < groups.length; i++) {
-      for (let j = i + 1; j < groups.length; j++) {
-        for (const a of groups[i]) {
-          for (const b of groups[j]) {
-            triples.push({ объект: labelOf(a), субъект: labelOf(b), предикат: p });
+  // Некоторые шаблоны в json кодируют конструкцию вида:
+  //   И( ..., ИЛИ(a,b), c)
+  // но эталон ожидает интерпретацию как:
+  //   a И b, a И c, b ИЛИ c (pivot = "a" из OR-поддерева)
+  // Поэтому для таких случаев мы обрабатываем пару (И + вложенный ИЛИ) вместе
+  // и пропускаем обработку вложенного ИЛИ отдельно.
+  const skipMethodLogic = new Set();
+
+  /*
+  relevantLogicMethods.forEach(logicId => {
+    if (skipMethodLogic.has(logicId)) return;
+    const op = logicOp(logicId); // "И" | "ИЛИ" | "НЕТ"
+    const container = containerMethodForLogic(logicId, recommendedMethods);
+
+    const operands = allEdgesOf(logicId)
+      .filter(isMethodEdge)
+      .map(l => otherEnd(l, logicId));
+
+    // --- спец-правило для графов типа pn3_1: AND + вложенный OR ---
+    if (op === "И") {
+      const orChild = operands.find(o => isLogic(o) && logicOp(o) === "ИЛИ");
+      if (orChild) {
+        // листья OR-поддерева
+        const orLeaves = collectLeafMethods(orChild).filter(mid => mid !== container);
+        // остальные листья AND (кроме OR-поддерева)
+        const otherLeaves = operands
+          .filter(o => o !== orChild)
+          .flatMap(o => collectLeafMethods(o))
+          .filter(mid => mid !== container);
+
+        if (orLeaves.length >= 2 && otherLeaves.length >= 1) {
+          // pivot = самый "правый" лист OR-поддерева (если координаты есть)
+          const pivot = orLeaves.slice().sort((a, b) => xOf(b) - xOf(a))[0];
+          const rest = [...new Set([...orLeaves, ...otherLeaves])].filter(mid => mid !== pivot);
+
+          // AND: все остальные -> pivot
+          for (const mid of rest) pushMM(mid, pivot, "связь И");
+
+          // OR: связи между всеми остальными (без pivot) как RIGHT->LEFT
+          const restSorted = rest.slice().sort((a, b) => xOf(a) - xOf(b)); // left..right
+          for (let i = 0; i < restSorted.length; i++) {
+            for (let j = i + 1; j < restSorted.length; j++) {
+              // right -> left
+              pushMM(restSorted[j], restSorted[i], "связь ИЛИ");
+            }
+          }
+
+          // пропускаем отдельную обработку OR-узла (иначе добавим лишнюю OR между его листьями)
+          skipMethodLogic.add(orChild);
+          return;
+        }
+      }
+    }
+
+    const operandSets = operands
+      .map(o => collectLeafMethods(o).filter(mid => mid !== container))
+      .filter(s => s.length);
+
+    if (operandSets.length < 2) return;
+
+    // координаты для направленности (если их нет, будет 0)
+    function xOf(id) {
+      const n = nodeById.get(id);
+      return (n && typeof n.x === "number") ? n.x : 0;
+    }
+
+    if (op === "ИЛИ") {
+      // Для методов эталон строится направленно:
+      //  - если 2 операнда, берём самые правые листья каждого операнда и связываем RIGHT -> LEFT
+      //  - иначе fallback: полный граф по всем листьям (без контейнера)
+      if (operandSets.length === 2) {
+        const a = operandSets[0].slice().sort((i, j) => xOf(j) - xOf(i))[0];
+        const b = operandSets[1].slice().sort((i, j) => xOf(j) - xOf(i))[0];
+        const pair = [a, b].sort((i, j) => xOf(i) - xOf(j)); // left, right
+        pushMM(pair[1], pair[0], "связь ИЛИ");
+      } else {
+        const all = [...new Set(operandSets.flat())].filter(mid => mid !== container);
+        for (let i = 0; i < all.length; i++) {
+          for (let j = i + 1; j < all.length; j++) {
+            // направленно: более правый -> более левый
+            const pair = [all[i], all[j]].sort((u, v) => xOf(u) - xOf(v));
+            pushMM(pair[1], pair[0], "связь ИЛИ");
+          }
+        }
+      }
+      return;
+    }
+
+    if (op === "И") {
+      const pred = "связь И";
+
+      // ---- Спец-случай: И(..., ИЛИ(a,b), c) ----
+      // Эталон для 3 графа: a = "канюлированные винты", (b,c) = ("спицы", "петля").
+      // Выводим:
+      //   b И a
+      //   c И a
+      //   c ИЛИ b
+      if (pred === "связь И") {
+        const orChildren = operands.filter(o => isLogic(o) && logicOp(o) === "ИЛИ");
+        if (orChildren.length === 1) {
+          const orId = orChildren[0];
+          const orLeaves = collectLeafMethods(orId).filter(mid => mid !== container);
+          if (orLeaves.length >= 2) {
+            const pivot = orLeaves.slice().sort((i, j) => xOf(j) - xOf(i))[0];
+            const allLeaves = [...new Set(operandSets.flat())].filter(mid => mid !== container);
+            const others = allLeaves.filter(mid => mid && mid !== pivot);
+
+            // AND: все остальные -> pivot
+            for (const o of [...new Set(others)]) pushMM(o, pivot, "связь И");
+
+            // OR: между всеми "другими" (исключая pivot)
+            const uniq = [...new Set(others)].slice().sort((a, b) => xOf(a) - xOf(b));
+            for (let i = 0; i < uniq.length; i++) {
+              for (let j = i + 1; j < uniq.length; j++) {
+                pushMM(uniq[j], uniq[i], "связь ИЛИ");
+              }
+            }
+
+            // вложенный ИЛИ уже учтён
+            skipMethodLogic.add(orId);
+            return;
+          }
+        }
+      }
+
+      // Эталон для AND обычно «стягивает» к одному опорному методу,
+      // если один операнд даёт единственный лист.
+      const sizes = operandSets.map(s => s.length);
+      const singleIdx = sizes.filter(x => x === 1).length === 1 ? sizes.findIndex(x => x === 1) : -1;
+      if (singleIdx !== -1) {
+        const pivot = operandSets[singleIdx][0];
+        const others = operandSets
+          .filter((_, idx) => idx !== singleIdx)
+          .flat()
+          .filter(mid => mid && mid !== pivot && mid !== container);
+        for (const o of [...new Set(others)]) pushMM(o, pivot, pred);
+        return;
+      }
+
+      // fallback: соединяем листья между операндами.
+      for (let i = 0; i < operandSets.length; i++) {
+        for (let j = i + 1; j < operandSets.length; j++) {
+          for (const a of operandSets[i]) {
+            for (const b of operandSets[j]) {
+              if (a === b) continue;
+              if (a === container || b === container) continue;
+              pushMM(a, b, pred);
+            }
           }
         }
       }
     }
   });
+  */
 
-  // 5) Удалим дубли
-  const uniq = new Map();
-  for (const t of triples) {
-    const key = `${t.объект}||${t.субъект}||${t.предикат}`;
-    if (!uniq.has(key)) uniq.set(key, t);
+
+  // ======= 3) критерии =======
+  // 3.0) NOT-контейнер: показываем "как видим".
+// На графе часто бывает: METHOD --(критерий)--> НЕТ --(критерий X)--> TARGET
+// В таблицу хотим: TARGET  METHOD  "критерий X, NOT".
+// ВАЖНО: никогда не выводим в "субъект" логические узлы (И/ИЛИ/НЕТ). Если владелец NOT не найден как метод,
+// пытаемся вычислить методы-контейнеры через hierarchy/leaf-обход.
+const handledNotEdges = new Set();
+
+function methodsOwningCriteriaContainer(startId) {
+  // 1) все владельцы по scoped-ребрам "критерий"
+  const owners = new Set();
+  for (const l of allEdgesOf(startId)) {
+    const p = predLow(l);
+    if (p !== "критерий") continue;
+    if (!isScopedEdge(l)) continue;
+    const other = otherEnd(l, startId);
+    if (!other) continue;
+    if (isMethod(other) || isLogic(other) || typeOf(other) === "root") owners.add(other);
   }
-  return [...uniq.values()];
+
+  if (owners.size) {
+    const all = new Set();
+    owners.forEach(oid => {
+      collectLeafMethodsSmart(oid).forEach(mid => all.add(mid));
+    });
+    const arr = Array.from(all);
+    const filtered = arr.filter(mid => recommendedMethods.has(mid));
+    return filtered.length ? filtered : arr;
+  }
+
+  // 2) fallback: поднимаемся по hierarchy.ownerId
+  const seen = new Set();
+  let cur = startId;
+  while (cur && !seen.has(cur)) {
+    seen.add(cur);
+
+    const leaf = collectLeafMethodsSmart(cur);
+    if (leaf.length) {
+      const filtered = leaf.filter(mid => recommendedMethods.has(mid));
+      return filtered.length ? filtered : leaf;
+    }
+
+    cur = parentOf.get(cur) || null;
+  }
+  return [...recommendedMethods];
+}
+
+links.forEach(l => {
+  const s = l.source, t = l.target;
+  if (!isLogic(s) || logicOp(s) !== "НЕТ") return;
+  const p0 = predOf(l);
+  if (!isCriteriaPredicate(p0)) return;
+
+  const outPred = `${p0}, NOT`;
+
+  // хозяева NOT: scoped входящие связи "критерий" (обычно method -> NOT),
+  // но если там логика/контейнер — разворачиваем до leaf методов.
+  const incoming = (inc.get(s) || []).filter(x => isScopedEdge(x));
+  const ownerCandidates = [];
+  for (const inL of incoming) {
+    const op = predOf(inL).toLowerCase();
+    if (!op.includes("критерий")) continue;
+    const cand = otherEnd(inL, s);
+    if (cand) ownerCandidates.push(cand);
+  }
+
+  let methodIds = [];
+  // Сначала берём явные методы среди владельцев
+  const directMethods = ownerCandidates.filter(isMethod);
+  if (directMethods.length) {
+    methodIds = directMethods;
+  } else if (ownerCandidates.length) {
+    // Разворачиваем логические/контейнерные владельцы до leaf методов
+    const all = new Set();
+    ownerCandidates.forEach(oid => collectLeafMethodsSmart(oid).forEach(mid => all.add(mid)));
+    methodIds = Array.from(all);
+  }
+
+  // Если так и не нашли — берём методы "по месту" (подъём по hierarchy от NOT)
+  if (!methodIds.length) methodIds = methodsOwningCriteriaContainer(s);
+
+  // На всякий случай фильтруем логические id, оставляем только methods
+  methodIds = methodIds.filter(isMethod);
+
+  // Если всё ещё пусто — не выводим странную строку "критерий ... -> ИЛИ"
+  if (!methodIds.length) return;
+
+  methodIds.forEach(mId => {
+    triples.push({ объект: clean(displayLabel(t)), субъект: displayLabel(mId), предикат: outPred });
+  });
+
+  handledNotEdges.add(`${s}|||${t}|||${p0}`);
+});
+
+  // 3.a прямые method<->criteria (направление не важно)
+  links.forEach(l => {
+    const p0 = predOf(l);
+    if (!isCriteriaPredicate(p0)) return;
+
+    // если это ребро уже было сколлапсировано через NOT-контейнер — не дублируем его
+    if (handledNotEdges.has(`${l.source}|||${l.target}|||${p0}`)) return;
+
+    const sT = typeOf(l.source);
+    const tT = typeOf(l.target);
+    if (sT === "method" && tT === "criteria") {
+      triples.push({ объект: clean(displayLabel(l.target)), субъект: displayLabel(l.source), предикат: p0.trim() || "критерий" });
+    } else if (sT === "criteria" && tT === "method") {
+      triples.push({ объект: clean(displayLabel(l.source)), субъект: displayLabel(l.target), предикат: p0.trim() || "критерий" });
+    }
+  });
+
+  // 3.b контейнерные критерии: стартовые logic узлы, где есть критериальные связи (в обе стороны)
+  const critGroupStarts = nodes
+    .filter(n => n.type === "logic")
+    .map(n => n.id)
+    .filter(id => allEdgesOf(id).some(l => isCriteriaEdge(l) && (isCriteria(otherEnd(l, id)) || isLogic(otherEnd(l, id)))));
+
+  function normValueForExport(valueStr) {
+    return clean(valueStr);
+  }
+
+  function methodsForCriteriaContainer(startId) {
+    // ✅ ВАЖНО: один и тот же критерий-контейнер (logic) может принадлежать
+    // нескольким методам/контейнерам одновременно (см. НЕТ, общий на 2 ветки).
+    // Поэтому НЕЛЬЗЯ брать единственного parentOf из hierarchy (он перезапишется).
+    // Вместо этого ищем всех владельцев по scoped-ребрам "критерий" и собираем
+    // методы для каждого владельца отдельно.
+
+    const owners = new Set();
+    for (const l of allEdgesOf(startId)) {
+      const p = predLow(l);
+      if (p !== "критерий") continue;
+      if (!isScopedEdge(l)) continue;
+      const other = otherEnd(l, startId);
+      if (!other) continue;
+      // владельцем может быть method или logic (контейнер методов)
+      if (isMethod(other) || isLogic(other) || typeOf(other) === "root") owners.add(other);
+    }
+
+    if (owners.size) {
+      const all = new Set();
+      owners.forEach(oid => {
+        collectLeafMethodsSmart(oid).forEach(mid => all.add(mid));
+      });
+      const arr = Array.from(all);
+      const filtered = arr.filter(mid => recommendedMethods.has(mid));
+      return filtered.length ? filtered : arr;
+    }
+
+    // fallback (старое поведение): поднимаемся по hierarchy.ownerId
+    const seen = new Set();
+    let cur = startId;
+    while (cur && !seen.has(cur)) {
+      seen.add(cur);
+
+      const leaf = collectLeafMethodsSmart(cur);
+      if (leaf.length) {
+        const filtered = leaf.filter(mid => recommendedMethods.has(mid));
+        return filtered.length ? filtered : leaf;
+      }
+
+      cur = parentOf.get(cur) || null;
+    }
+    return [...recommendedMethods];
+  }
+
+  function exportCriteriaLeaves(startId) {
+    const leaves = leafCriteriaUnderWithFlags(startId);
+    const methodIds = methodsForCriteriaContainer(startId);
+
+    leaves.forEach(({ id, lbl, not, pred }) => {
+      const n = nodeById.get(id) || {};
+      // ВАЖНО: не схлопываем предикаты. Если лист достигнут по конкретному ребру (например, "при"),
+      // экспортируем именно его. Иначе — fallback к эвристике.
+      const basePred = clean(pred) || criterionPredicateFor(id);
+
+      // значение / уточнение
+      if (n.value != null && clean(n.value) !== "") {
+        const v = clean(n.value);
+        if (v === ROOT_SHORT) {
+          triples.push({ объект: lbl, субъект: ROOT_SHORT, предикат: "уточнение" });
+        } else {
+          triples.push({ объект: normValueForExport(v), субъект: lbl, предикат: "значение" });
+        }
+      }
+
+      let pOut = basePred;
+      if (not && basePred.toLowerCase().startsWith("критерий")) pOut = `${basePred}, NOT`;
+
+      methodIds.forEach(mId => {
+        triples.push({ объект: lbl, субъект: displayLabel(mId), предикат: pOut });
+      });
+    });
+  }
+
+  critGroupStarts.forEach(startId => exportCriteriaLeaves(startId));
+
+  // ======= 4) логические связи между критериями (pivot по "для" для графа 2) =======
+  const ccEdges = new Map();
+  function pushCC(aId, bId, pred) {
+  // Добавляет "логические" связи между операндами (И / ИЛИ / НЕТ)
+  // ВАЖНО: оставляем только ОДНУ тройку на пару (без дубля A->B и B->A),
+  // а направление выбираем "по направлению линии" по умолчанию = слева направо (по x).
+  const aNode = nodeById.get(aId);
+  const bNode = nodeById.get(bId);
+
+  const aLbl = clean(displayLabel(aId));
+  const bLbl = clean(displayLabel(bId));
+  if (!aLbl || !bLbl) return;
+
+  const p = (pred || "").trim();
+
+  // Для "связь И/ИЛИ" делаем одну запись на пару, но запоминаем выбранное направление.
+  // "связь НЕТ" для критериев НЕ экспортируем отдельными тройками: отрицание уже отражается
+  // в тройке критерия (например: "критерий симптом, NOT").
+  if (p === "связь И" || p === "связь ИЛИ") {
+    // ключ пары — по id (стабильно), чтобы не зависеть от алфавита/языка
+    const leftId = (String(aId) <= String(bId)) ? String(aId) : String(bId);
+    const rightId = (String(aId) <= String(bId)) ? String(bId) : String(aId);
+    const k = `${leftId}|||${rightId}|||${p}`;
+
+    // направление "дефолтом": слева направо по координате x (если есть),
+    // иначе — как aId -> bId при первом добавлении.
+    let subj = aLbl, obj = bLbl;
+    if (aNode && bNode && Number.isFinite(aNode.x) && Number.isFinite(bNode.x) && aNode.x !== bNode.x) {
+      if (aNode.x <= bNode.x) { subj = aLbl; obj = bLbl; }
+      else { subj = bLbl; obj = aLbl; }
+    }
+
+    if (!ccEdges.has(k)) {
+      ccEdges.set(k, { pred: p, субъект: subj, объект: obj });
+    }
+    return;
+  }
+
+  // Остальные (редкие) — направленные, не дедуплируем
+  const k = `${aId}|||${bId}|||${p}`;
+  if (!ccEdges.has(k)) ccEdges.set(k, { pred: p, субъект: aLbl, объект: bLbl });
+}
+
+
+
+
+  function findPivotForAnd(andId) {
+    const neigh = allEdgesOf(andId).filter(isCriteriaEdge);
+    const forEdge = neigh.find(l => predLow(l).startsWith("для"));
+    if (!forEdge) return null;
+    const o = otherEnd(forEdge, andId);
+    if (isCriteria(o)) return o;
+    const leaves = leafCriteriaUnderWithFlags(o).map(x => x.id);
+    return leaves[0] || null;
+  }
+
+  function criteriaOperands(logicId) {
+    const ops = new Set();
+
+    for (const l of allEdgesOf(logicId)) {
+      if (!isCriteriaEdge(l)) continue;
+
+      // защита от подтягивания parent-logic через scope:
+      // пропускаем только ВХОДЯЩУЮ scoped-связь (parent -> this),
+      // но оставляем исходящие scoped-связи (this -> child), т.к. они могут быть операндами (например, НЕТ).
+      const otherTmp = otherEnd(l, logicId);
+      // target/source могут быть строковыми id либо объектами {id,...}
+      const isIncomingToCurrent = (l.target === logicId) || (l.target && l.target.id === logicId);
+      if (isScopedEdge(l) && isLogic(otherTmp) && isIncomingToCurrent) continue;
+
+      const o = otherEnd(l, logicId);
+      if (isCriteria(o) || isLogic(o)) ops.add(o);
+    }
+
+    return Array.from(ops);
+  }
+
+
+  // строим связи только по критериальному слою
+  nodes.forEach(n => {
+    if (n.type !== "logic") return;
+
+    const op = logicOp(n.id);
+    if (op !== "И" && op !== "ИЛИ" && op !== "НЕТ") return;
+
+    const operands = criteriaOperands(n.id);
+    if (operands.length < 2) return;
+
+    // Каждый операнд превращаем в набор ЛИСТЬЕВ-критериев.
+    // ВАЖНО: один child = одна "группа".
+    const groups = operands
+      .map(o => {
+        const leaves = leafCriteriaUnderWithFlags(o);
+        const ids = Array.from(new Set(leaves.map(x => x.id))).filter(Boolean);
+        const negIds = Array.from(new Set(leaves.filter(x => x.not).map(x => x.id))).filter(Boolean);
+        return { ids, negIds };
+      })
+      .filter(g => g.ids.length);
+
+    const groupIds = groups.map(g => g.ids);
+
+    if (groups.length < 2) return;
+
+    // ✅ Правило (сверху-вниз, “как на графе”):
+    // - Логика И/ИЛИ распространяется на ВСЕ листья в поддереве (включая листья внутри вложенных логик)
+    // - Поэтому для данного логического узла строим полный граф по всем листьям (pairwise)
+    // - Вложенные логики также добавят свои связи отдельно (например, ИЛИ внутри И)
+    if (op === "И" || op === "ИЛИ") {
+      const pred = (op === "И") ? "связь И" : "связь ИЛИ";
+
+      const allIds = Array.from(new Set(groups.flatMap(g => g.ids))).filter(Boolean);
+      if (allIds.length < 2) return;
+
+      for (let i = 0; i < allIds.length; i++) {
+        for (let j = i + 1; j < allIds.length; j++) {
+          const a = allIds[i], b = allIds[j];
+          if (a === b) continue;
+          pushCC(a, b, pred);
+        }
+      }
+      return;
+    }
+
+    // НЕТ как бинарную связь не строим (у тебя так задумано)
+  });
+
+
+
+  // ======= 4.b логические связи между МЕТОДАМИ (И / ИЛИ) =======
+  // Эти связи НЕ заменяют подписи на линиях. Они добавляются дополнительно,
+  // чтобы в тройках было видно, что методы состоят в выборе И/ИЛИ.
+  function methodOperands(logicId) {
+    const ops = new Set();
+    for (const l of allEdgesOf(logicId)) {
+      // Критерии не трогаем, но связь logic->logic с предикатом "критерий" (контейнер/подконтейнер)
+      // должна учитываться как операнд для методов. Поэтому отсекаем только переходы к criteria-узлам.
+      const other0 = otherEnd(l, logicId);
+      if (isCriteriaEdge(l) && other0 && typeOf(other0) === "criteria") continue;
+      // не подтягиваем parent-logic через входящую scoped-связь
+      const otherTmp = otherEnd(l, logicId);
+      if (isScopedEdge(l) && isLogic(otherTmp) && (l.target === logicId)) continue;
+
+      const o = otherEnd(l, logicId);
+      if (!o) continue;
+      if (isMethod(o) || isLogic(o)) ops.add(o);
+    }
+    return Array.from(ops);
+  }
+
+  nodes.forEach(n => {
+    if (n.type !== "logic") return;
+    const op = logicOp(n.id);
+    if (op !== "И" && op !== "ИЛИ") return;
+
+    const operands = methodOperands(n.id);
+    if (operands.length < 2) return;
+
+    // каждая ветка-операнд = отдельная группа
+    const groupsM = operands
+      .map(o => {
+        const leaf = collectLeafMethodsSmart(o);
+        const ids = Array.from(new Set(leaf)).filter(Boolean);
+        return { ids };
+      })
+      .filter(g => g.ids.length);
+
+    if (groupsM.length < 2) return;
+
+    const pred = (op === "И") ? "связь И" : "связь ИЛИ";
+
+        // ✅ “сверху-вниз”: логика И/ИЛИ распространяется на все листья в поддереве
+    const allIdsM = Array.from(new Set(groupsM.flatMap(g => g.ids))).filter(Boolean);
+    if (allIdsM.length < 2) return;
+
+    for (let i = 0; i < allIdsM.length; i++) {
+      for (let j = i + 1; j < allIdsM.length; j++) {
+        const a = allIdsM[i], b = allIdsM[j];
+        if (a === b) continue;
+
+        // дедуп по паре + предикат, направление "дефолт" по x
+        const aNode = nodeById.get(a);
+        const bNode = nodeById.get(b);
+
+        const aLbl = clean(displayLabel(a));
+        const bLbl = clean(displayLabel(b));
+        if (!aLbl || !bLbl) continue;
+
+        const leftId = (String(a) <= String(b)) ? String(a) : String(b);
+        const rightId = (String(a) <= String(b)) ? String(b) : String(a);
+        const k = `${leftId}|||${rightId}|||${pred}`;
+
+        let subj = aLbl, obj = bLbl;
+        if (aNode && bNode && Number.isFinite(aNode.x) && Number.isFinite(bNode.x) && aNode.x !== bNode.x) {
+          if (aNode.x <= bNode.x) { subj = aLbl; obj = bLbl; }
+          else { subj = bLbl; obj = aLbl; }
+        }
+
+        if (!ccEdges.has(k)) ccEdges.set(k, { pred, субъект: subj, объект: obj });
+      }
+    }
+
+  }); // end nodes.forEach (logic)
+
+  ccEdges.forEach((val, k) => {
+    // val: {pred, субъект, объект} или {pred:[...], субъект, объект}
+    if (!val) return;
+    const subj = (typeof val === "string") ? "" : clean(val.субъект || "");
+    const obj  = (typeof val === "string") ? "" : clean(val.объект || "");
+    const pred = (typeof val === "string") ? String(val) : val.pred;
+
+    if (Array.isArray(pred)) {
+      pred.forEach(p => triples.push({ объект: obj, субъект: subj, предикат: p }));
+    } else {
+      triples.push({ объект: obj, субъект: subj, предикат: pred });
+    }
+  });
+
+
+  // ======= X) значения/уточнения как отдельные вершины (по ребрам) =======
+  // Рисуем отдельную вершину-значение и ребро "значение"/"уточнение" -> это должно экспортироваться в тройки.
+  // Поддерживаем обе стороны стрелки: criteria <-> (любой узел кроме logic).
+  links.forEach(l => {
+    const s = l.source, t = l.target;
+
+    const p0 = clean(predOf(l));
+    const p = p0.toLowerCase();
+    if (p !== "значение" && p !== "уточнение") return;
+
+    const sIsC = isCriteria(s);
+    const tIsC = isCriteria(t);
+    if (!sIsC && !tIsC) return;
+
+    // не считаем значение к логическим узлам
+    const other = sIsC ? t : s;
+    const crit  = sIsC ? s : t;
+    if (!other || !crit) return;
+    if (other.type === "logic") return;
+
+    triples.push({
+      объект: clean(displayLabel(other)),
+      субъект: clean(displayLabel(crit)),
+      предикат: p0
+    });
+  });
+
+  // ======= 5) дедуп =======
+  // 1) обычные тройки: дедуп по направлению (obj->subj->pred)
+  // 2) симметричные логические связи (связь И/ИЛИ/НЕТ): дедуп по НЕупорядоченной паре,
+  //    чтобы не было дубля A->B и B->A. Оставляем первую встретившуюся (направление "дефолтом").
+  const sym = new Set(["связь И", "связь ИЛИ"]);
+
+  const seen = new Set();
+  const outTriples = [];
+  triples.forEach(t => {
+    const pred = String(t.предикат ?? "").trim();
+    let k;
+    if (sym.has(pred)) {
+      const a = String(t.объект ?? "").trim();
+      const b = String(t.субъект ?? "").trim();
+      const p1 = a <= b ? a : b;
+      const p2 = a <= b ? b : a;
+      k = `${pred}|||${p1}|||${p2}`;
+    } else {
+      k = `${t.объект}|||${t.субъект}|||${pred}`;
+    }
+    if (seen.has(k)) return;
+    seen.add(k);
+    outTriples.push({ объект: t.объект, субъект: t.субъект, предикат: pred });
+  });
+
+  return outTriples;
 }
 
 
@@ -2204,7 +3154,7 @@ if (generateBtn) {
       const ttl = await backendToTTL(graphOnly);
 
       // ✅ triples считаем ПРАВИЛЬНО на фронте
-      const triples = buildTriplesFromGraph(graphWH);
+      const triples = buildTriplesFromGraph(graphOnly);
 
       const payload = {
         doc: graphWH.doc,

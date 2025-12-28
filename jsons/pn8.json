@@ -1,0 +1,234 @@
+{
+  "doc": {
+    "id": "",
+    "page": "",
+    "uur": "",
+    "udd": "",
+    "text": ""
+  },
+  "nodes": [
+    {
+      "id": "n_zl29w3t",
+      "label": "ПН",
+      "value": null,
+      "note": null,
+      "type": "root",
+      "x": 44.999999046325684,
+      "y": -100.00000071525574,
+      "w": 120,
+      "h": 40,
+      "collapsed": false
+    },
+    {
+      "id": "n_jfjds5v",
+      "label": "частичная пателлэктомия",
+      "value": null,
+      "note": null,
+      "type": "method",
+      "x": 39,
+      "y": 107.99999904632568,
+      "w": 360,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_uldxrz1",
+      "label": "резекция надколенника",
+      "value": null,
+      "note": null,
+      "type": "method",
+      "x": 562.9999570846558,
+      "y": -77.00000071525574,
+      "w": 360,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_9bu6x2i",
+      "label": "удаление надколенника",
+      "value": null,
+      "note": null,
+      "type": "method",
+      "x": 758.9999570846558,
+      "y": 91.99999904632568,
+      "w": 360,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_kdbeg7x",
+      "label": "И",
+      "value": null,
+      "note": null,
+      "type": "logic",
+      "x": 46.999998927116394,
+      "y": 268.9999771118164,
+      "w": 42,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_yamw67i",
+      "label": "НЕТ",
+      "value": null,
+      "note": null,
+      "type": "logic",
+      "x": -58.000000953674316,
+      "y": 494.99997663497925,
+      "w": 42,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_m7vpxff",
+      "label": "многооскольчастый перелом нижнего полюса надколенника",
+      "value": null,
+      "note": null,
+      "type": "criteria",
+      "x": -245.0000114440918,
+      "y": 397.99994587898254,
+      "w": 220,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_5x9q309",
+      "label": "остеосинтез",
+      "value": null,
+      "note": null,
+      "type": "criteria",
+      "x": -142.99999749660492,
+      "y": 630.0000057220459,
+      "w": 220,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_24woo5m",
+      "label": "уменьшение болевого синдрома",
+      "value": null,
+      "note": null,
+      "type": "criteria",
+      "x": 169.9999885559082,
+      "y": 539.0000070333481,
+      "w": 220,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_mqoiv5q",
+      "label": "восстановление функции коленного сустава",
+      "value": null,
+      "note": null,
+      "type": "criteria",
+      "x": 366.9999885559082,
+      "y": 452.9999761581421,
+      "w": 220,
+      "h": 42,
+      "collapsed": false
+    }
+  ],
+  "links": [
+    {
+      "source": "n_jfjds5v",
+      "target": "n_zl29w3t",
+      "predicate": "рекомендуется",
+      "label": "рекомендуется",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_jfjds5v",
+      "target": "n_uldxrz1",
+      "predicate": "тоже самое",
+      "label": "тоже самое",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_jfjds5v",
+      "target": "n_9bu6x2i",
+      "predicate": "тоже самое",
+      "label": "тоже самое",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_kdbeg7x",
+      "target": "n_jfjds5v",
+      "predicate": "критерий",
+      "label": "критерий",
+      "scope": "группа",
+      "scopeName": "группа критериев"
+    },
+    {
+      "source": "n_kdbeg7x",
+      "target": "n_yamw67i",
+      "predicate": "критерий",
+      "label": "критерий",
+      "scope": "подгруппа",
+      "scopeName": "подгруппа критериев"
+    },
+    {
+      "source": "n_yamw67i",
+      "target": "n_5x9q309",
+      "predicate": "при",
+      "label": "при",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_kdbeg7x",
+      "target": "n_mqoiv5q",
+      "predicate": "для",
+      "label": "для",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_kdbeg7x",
+      "target": "n_24woo5m",
+      "predicate": "для",
+      "label": "для",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_kdbeg7x",
+      "target": "n_m7vpxff",
+      "predicate": "критерий симптом",
+      "label": "критерий симптом",
+      "scope": "",
+      "scopeName": ""
+    }
+  ],
+  "hierarchy": {
+    "rootId": "n_zl29w3t",
+    "groups": [
+      {
+        "id": "grp_1",
+        "scope": "группа",
+        "name": "группа критериев",
+        "ownerId": "n_kdbeg7x",
+        "linkIds": [
+          "n_kdbeg7x->n_jfjds5v"
+        ],
+        "nodeIds": [
+          "n_jfjds5v"
+        ]
+      },
+      {
+        "id": "grp_2",
+        "scope": "подгруппа",
+        "name": "подгруппа критериев",
+        "ownerId": "n_kdbeg7x",
+        "linkIds": [
+          "n_kdbeg7x->n_yamw67i"
+        ],
+        "nodeIds": [
+          "n_yamw67i"
+        ]
+      }
+    ]
+  }
+}

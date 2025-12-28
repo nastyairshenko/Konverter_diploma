@@ -1,0 +1,194 @@
+{
+  "doc": {
+    "id": "",
+    "page": "",
+    "uur": "",
+    "udd": "",
+    "text": ""
+  },
+  "nodes": [
+    {
+      "id": "n_2vqpsly",
+      "label": "ПН",
+      "value": null,
+      "note": null,
+      "type": "root",
+      "x": 135.69877433776855,
+      "y": -204.81912994384766,
+      "w": 120,
+      "h": 40,
+      "collapsed": false
+    },
+    {
+      "id": "n_7c9azhz",
+      "label": "профилактика осложнений",
+      "value": null,
+      "note": null,
+      "type": "criteria",
+      "x": 18.113903045654297,
+      "y": 236.43524837493896,
+      "w": 220,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_vylgzv5",
+      "label": "фармокологическая профилактика ВТЭО",
+      "value": null,
+      "note": null,
+      "type": "method",
+      "x": 143.14831161499023,
+      "y": -86.1359875202179,
+      "w": 360,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_6upd4j3",
+      "label": "И",
+      "value": null,
+      "note": null,
+      "type": "logic",
+      "x": 141.64607620239258,
+      "y": 28.329215168952942,
+      "w": 42,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_3nv8wwq",
+      "label": "продолжающееся кровотечение",
+      "value": null,
+      "note": null,
+      "type": "criteria",
+      "x": -295.03839111328125,
+      "y": 221.79702186584473,
+      "w": 220,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_nrbqch4",
+      "label": "иммобилизация конечности",
+      "value": null,
+      "note": null,
+      "type": "criteria",
+      "x": 335.1139030456543,
+      "y": 252.89006996154785,
+      "w": 220,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_wpn6gzh",
+      "label": "консервативное лечение",
+      "value": null,
+      "note": null,
+      "type": "criteria",
+      "x": 623.2426910400391,
+      "y": 185.86728191375732,
+      "w": 220,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_cm0kj06",
+      "label": "НЕТ",
+      "value": null,
+      "note": null,
+      "type": "logic",
+      "x": -143.0279893875122,
+      "y": 125.75408267974854,
+      "w": 42,
+      "h": 42,
+      "collapsed": false
+    }
+  ],
+  "links": [
+    {
+      "source": "n_2vqpsly",
+      "target": "n_vylgzv5",
+      "predicate": "рекомендуется",
+      "label": "рекомендуется",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_vylgzv5",
+      "target": "n_6upd4j3",
+      "predicate": "критерий",
+      "label": "критерий",
+      "scope": "группа",
+      "scopeName": "группа критериев"
+    },
+    {
+      "source": "n_6upd4j3",
+      "target": "n_wpn6gzh",
+      "predicate": "при",
+      "label": "при",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_6upd4j3",
+      "target": "n_nrbqch4",
+      "predicate": "при",
+      "label": "при",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_6upd4j3",
+      "target": "n_7c9azhz",
+      "predicate": "для",
+      "label": "для",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_6upd4j3",
+      "target": "n_cm0kj06",
+      "predicate": "критерий",
+      "label": "критерий",
+      "scope": "подгруппа",
+      "scopeName": "подгруппа критериев"
+    },
+    {
+      "source": "n_cm0kj06",
+      "target": "n_3nv8wwq",
+      "predicate": "критерий симптом",
+      "label": "критерий симптом",
+      "scope": "",
+      "scopeName": ""
+    }
+  ],
+  "hierarchy": {
+    "rootId": "n_2vqpsly",
+    "groups": [
+      {
+        "id": "grp_1",
+        "scope": "группа",
+        "name": "группа критериев",
+        "ownerId": "n_vylgzv5",
+        "linkIds": [
+          "n_vylgzv5->n_6upd4j3"
+        ],
+        "nodeIds": [
+          "n_6upd4j3"
+        ]
+      },
+      {
+        "id": "grp_2",
+        "scope": "подгруппа",
+        "name": "подгруппа критериев",
+        "ownerId": "n_6upd4j3",
+        "linkIds": [
+          "n_6upd4j3->n_cm0kj06"
+        ],
+        "nodeIds": [
+          "n_cm0kj06"
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,226 @@
+{
+  "doc": {
+    "id": "",
+    "page": "",
+    "uur": "",
+    "udd": "",
+    "text": ""
+  },
+  "nodes": [
+    {
+      "id": "n_e8mu3b2",
+      "label": "ПН",
+      "value": null,
+      "note": null,
+      "type": "root",
+      "x": 0,
+      "y": 0,
+      "w": 120,
+      "h": 40,
+      "collapsed": false
+    },
+    {
+      "id": "n_z64omf3",
+      "label": "полная пателлэктомия",
+      "value": null,
+      "note": null,
+      "type": "method",
+      "x": 6.015127182006836,
+      "y": 173.23560500144958,
+      "w": 360,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_shr80ld",
+      "label": "восстановление функции коленного сустава",
+      "value": null,
+      "note": null,
+      "type": "criteria",
+      "x": 512.4886512756348,
+      "y": 334.44096541404724,
+      "w": 220,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_bc4tfyj",
+      "label": "устранение болевого синдрома",
+      "value": null,
+      "note": null,
+      "type": "criteria",
+      "x": 330.83189582824707,
+      "y": 433.0890282690525,
+      "w": 220,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_w1wwjnm",
+      "label": "И",
+      "value": null,
+      "note": null,
+      "type": "logic",
+      "x": 21.654452621936798,
+      "y": 303.1623282432556,
+      "w": 42,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_2ddcbwf",
+      "label": "остеосинтез",
+      "value": null,
+      "note": null,
+      "type": "criteria",
+      "x": -121.12971687316895,
+      "y": 645.3819351196289,
+      "w": 220,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_kw3xs7l",
+      "label": "репозиция",
+      "value": null,
+      "note": null,
+      "type": "criteria",
+      "x": -368.1256847381592,
+      "y": 381.3589200973511,
+      "w": 220,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_i0u4y2y",
+      "label": "реконструктивная операция",
+      "value": null,
+      "note": null,
+      "type": "criteria",
+      "x": -235.9354020357132,
+      "y": 540.5372704565525,
+      "w": 220,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_9bk0409",
+      "label": "ИЛИ",
+      "value": null,
+      "note": null,
+      "type": "logic",
+      "x": -81.29566168785095,
+      "y": 366.8949873447418,
+      "w": 42,
+      "h": 42,
+      "collapsed": false
+    }
+  ],
+  "links": [
+    {
+      "source": "n_z64omf3",
+      "target": "n_e8mu3b2",
+      "predicate": "рекомендуется",
+      "label": "рекомендуется",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_w1wwjnm",
+      "target": "n_z64omf3",
+      "predicate": "критерий",
+      "label": "критерий",
+      "scope": "группа",
+      "scopeName": "подгруппа критериев"
+    },
+    {
+      "source": "n_w1wwjnm",
+      "target": "n_shr80ld",
+      "predicate": "для",
+      "label": "для",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_bc4tfyj",
+      "target": "n_w1wwjnm",
+      "predicate": "для",
+      "label": "для",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_w1wwjnm",
+      "target": "n_9bk0409",
+      "predicate": "критерий",
+      "label": "критерий",
+      "scope": "подгруппа",
+      "scopeName": "подгруппа критериев"
+    },
+    {
+      "source": "n_9bk0409",
+      "target": "n_kw3xs7l",
+      "predicate": "критерий возможность",
+      "label": "критерий возможность",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_9bk0409",
+      "target": "n_i0u4y2y",
+      "predicate": "критерий возможность",
+      "label": "критерий возможность",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_9bk0409",
+      "target": "n_2ddcbwf",
+      "predicate": "критерий возможность",
+      "label": "критерий возможность",
+      "scope": "подгруппа",
+      "scopeName": "группа критериев"
+    }
+  ],
+  "hierarchy": {
+    "rootId": "n_e8mu3b2",
+    "groups": [
+      {
+        "id": "grp_1",
+        "scope": "группа",
+        "name": "подгруппа критериев",
+        "ownerId": "n_w1wwjnm",
+        "linkIds": [
+          "n_w1wwjnm->n_z64omf3"
+        ],
+        "nodeIds": [
+          "n_z64omf3"
+        ]
+      },
+      {
+        "id": "grp_2",
+        "scope": "подгруппа",
+        "name": "подгруппа критериев",
+        "ownerId": "n_w1wwjnm",
+        "linkIds": [
+          "n_w1wwjnm->n_9bk0409"
+        ],
+        "nodeIds": [
+          "n_9bk0409"
+        ]
+      },
+      {
+        "id": "grp_3",
+        "scope": "подгруппа",
+        "name": "группа критериев",
+        "ownerId": "n_9bk0409",
+        "linkIds": [
+          "n_9bk0409->n_2ddcbwf"
+        ],
+        "nodeIds": [
+          "n_2ddcbwf"
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,122 @@
+{
+  "doc": {
+    "id": "",
+    "page": "",
+    "uur": "",
+    "udd": "",
+    "text": ""
+  },
+  "nodes": [
+    {
+      "id": "n_v07xmg9",
+      "label": "ПН",
+      "value": null,
+      "note": null,
+      "type": "root",
+      "x": 22.11060619354248,
+      "y": -212.0350215435028,
+      "w": 120,
+      "h": 40,
+      "collapsed": false
+    },
+    {
+      "id": "n_e8aqcf4",
+      "label": "интраоперационный рентгенологический контроль",
+      "value": null,
+      "note": null,
+      "type": "method",
+      "x": 26.947296142578125,
+      "y": -64.94990348815918,
+      "w": 360,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_08vglpi",
+      "label": "И",
+      "value": null,
+      "note": null,
+      "type": "logic",
+      "x": 28.492609977722168,
+      "y": 58.69390606880188,
+      "w": 42,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_5uvrtn8",
+      "label": "контроль положения имплантов и репозиции отломков",
+      "value": null,
+      "note": null,
+      "type": "criteria",
+      "x": -137.50033807754517,
+      "y": 180.33964824676514,
+      "w": 220,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_smbx8t0",
+      "label": "накостный открытый остеосинтез надколенника",
+      "value": null,
+      "note": null,
+      "type": "criteria",
+      "x": 185.51625061035156,
+      "y": 183.21144914627075,
+      "w": 220,
+      "h": 42,
+      "collapsed": false
+    }
+  ],
+  "links": [
+    {
+      "source": "n_v07xmg9",
+      "target": "n_e8aqcf4",
+      "predicate": "рекомендуется",
+      "label": "рекомендуется",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_08vglpi",
+      "target": "n_e8aqcf4",
+      "predicate": "критерий",
+      "label": "критерий",
+      "scope": "группа",
+      "scopeName": "группа критериев"
+    },
+    {
+      "source": "n_08vglpi",
+      "target": "n_5uvrtn8",
+      "predicate": "для",
+      "label": "для",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_08vglpi",
+      "target": "n_smbx8t0",
+      "predicate": "при",
+      "label": "при",
+      "scope": "",
+      "scopeName": ""
+    }
+  ],
+  "hierarchy": {
+    "rootId": "n_v07xmg9",
+    "groups": [
+      {
+        "id": "grp_1",
+        "scope": "группа",
+        "name": "группа критериев",
+        "ownerId": "n_08vglpi",
+        "linkIds": [
+          "n_08vglpi->n_e8aqcf4"
+        ],
+        "nodeIds": [
+          "n_e8aqcf4"
+        ]
+      }
+    ]
+  }
+}
