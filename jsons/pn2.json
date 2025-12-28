@@ -1,0 +1,254 @@
+{
+  "doc": {
+    "id": "3276_Переломы_надколенника 29.07.25_V.docx",
+    "page": "20",
+    "uur": "С ",
+    "udd": "4",
+    "text": ""
+  },
+  "nodes": [
+    {
+      "id": "n_wvbxb85",
+      "label": "ПН",
+      "value": null,
+      "note": null,
+      "type": "root",
+      "x": 155.99998950958252,
+      "y": -148.99998474121094,
+      "w": 120,
+      "h": 40,
+      "collapsed": false
+    },
+    {
+      "id": "n_yq6fa3h",
+      "label": "Хирругическое лечение",
+      "value": null,
+      "note": null,
+      "type": "method",
+      "x": 156.9999885559082,
+      "y": -14,
+      "w": 360,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_kq0a626",
+      "label": "консолидация перелома",
+      "value": null,
+      "note": null,
+      "type": "criteria",
+      "x": 1090.0000190734863,
+      "y": 13.000000029802322,
+      "w": 220,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_kw63e5l",
+      "label": "ИЛИ",
+      "value": null,
+      "note": null,
+      "type": "logic",
+      "x": 498.99998903274536,
+      "y": 122,
+      "w": 42,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_jafa8bb",
+      "label": "ПН в составе политравмы",
+      "value": null,
+      "note": null,
+      "type": "criteria",
+      "x": 1011.9999580383301,
+      "y": 209.99998474121094,
+      "w": 220,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_ano55hb",
+      "label": "неудовлетворительные результаты консервативного лечения",
+      "value": null,
+      "note": null,
+      "type": "criteria",
+      "x": 983.9999585151672,
+      "y": 348.9999771118164,
+      "w": 380.16,
+      "h": 72.576,
+      "collapsed": false
+    },
+    {
+      "id": "n_rog8rmp",
+      "label": "нарушение непрерывности разгибательного механизма основания и верхушки надколенника с утратой азгибания",
+      "value": null,
+      "note": null,
+      "type": "criteria",
+      "x": 771.9999885559082,
+      "y": 561.9999771118164,
+      "w": 656.91648,
+      "h": 125.41132799999997,
+      "collapsed": false
+    },
+    {
+      "id": "n_3abjwl8",
+      "label": "остеохондральные переломы со свободными внутрисуставными фрагментами",
+      "value": null,
+      "note": null,
+      "type": "criteria",
+      "x": 103.99999630451202,
+      "y": 574.0000076293945,
+      "w": 456.192,
+      "h": 87.09119999999999,
+      "collapsed": false
+    },
+    {
+      "id": "n_t4ld3sc",
+      "label": "смещение фрагментов",
+      "value": "на 2 мм и более",
+      "note": null,
+      "type": "criteria",
+      "x": -284.99997997283936,
+      "y": 404.9999771118164,
+      "w": 280,
+      "h": 56,
+      "collapsed": false
+    },
+    {
+      "id": "n_1mw1xql",
+      "label": "дисконгруэнтность суставной поверхности",
+      "value": "более 2 мм",
+      "note": null,
+      "type": "criteria",
+      "x": -388.9999808073044,
+      "y": 208.99999237060547,
+      "w": 280,
+      "h": 56,
+      "collapsed": false
+    },
+    {
+      "id": "n_qcx60k9",
+      "label": "И",
+      "value": null,
+      "note": null,
+      "type": "logic",
+      "x": 612.9999580383301,
+      "y": -10,
+      "w": 42,
+      "h": 42,
+      "collapsed": false
+    }
+  ],
+  "links": [
+    {
+      "source": "n_wvbxb85",
+      "target": "n_yq6fa3h",
+      "predicate": "рекомендуется",
+      "label": "рекомендуется",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_jafa8bb",
+      "target": "n_kw63e5l",
+      "predicate": "критерий симптом",
+      "label": "критерий симптом",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_ano55hb",
+      "target": "n_kw63e5l",
+      "predicate": "критерий пациент",
+      "label": "критерий пациент",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_kw63e5l",
+      "target": "n_rog8rmp",
+      "predicate": "критерий симптом",
+      "label": "критерий симптом",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_kw63e5l",
+      "target": "n_3abjwl8",
+      "predicate": "критерий симптом",
+      "label": "критерий симптом",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_t4ld3sc",
+      "target": "n_kw63e5l",
+      "predicate": "критерий симптом",
+      "label": "критерий симптом",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_1mw1xql",
+      "target": "n_kw63e5l",
+      "predicate": "критерий симптом",
+      "label": "критерий симптом",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_yq6fa3h",
+      "target": "n_qcx60k9",
+      "predicate": "критерий",
+      "label": "критерий",
+      "scope": "группа",
+      "scopeName": "группа критериев"
+    },
+    {
+      "source": "n_qcx60k9",
+      "target": "n_kq0a626",
+      "predicate": "для",
+      "label": "для",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_qcx60k9",
+      "target": "n_kw63e5l",
+      "predicate": "критерий",
+      "label": "критерий",
+      "scope": "подгруппа",
+      "scopeName": "подгруппа критериев"
+    }
+  ],
+  "hierarchy": {
+    "rootId": "n_wvbxb85",
+    "groups": [
+      {
+        "id": "grp_1",
+        "scope": "группа",
+        "name": "группа критериев",
+        "ownerId": "n_yq6fa3h",
+        "linkIds": [
+          "n_yq6fa3h->n_qcx60k9"
+        ],
+        "nodeIds": [
+          "n_qcx60k9"
+        ]
+      },
+      {
+        "id": "grp_2",
+        "scope": "подгруппа",
+        "name": "подгруппа критериев",
+        "ownerId": "n_qcx60k9",
+        "linkIds": [
+          "n_qcx60k9->n_kw63e5l"
+        ],
+        "nodeIds": [
+          "n_kw63e5l"
+        ]
+      }
+    ]
+  }
+}

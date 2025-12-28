@@ -1361,7 +1361,7 @@ if (exportXlsxBtn) {
     try {
       const graphWH = buildGraphWithHierarchyJSON();
       const graphOnly = normalizeToGraphOnly(graphWH);
-      const triples = buildTriplesFromGraph(graphOnly);
+      const triples = buildTriplesFromGraph(graphWH);
 
       const rows = [
         ["объект", "субъект", "предикат"],
@@ -2204,7 +2204,7 @@ if (generateBtn) {
       const ttl = await backendToTTL(graphOnly);
 
       // ✅ triples считаем ПРАВИЛЬНО на фронте
-      const triples = buildTriplesFromGraph(graphOnly);
+      const triples = buildTriplesFromGraph(graphWH);
 
       const payload = {
         doc: graphWH.doc,

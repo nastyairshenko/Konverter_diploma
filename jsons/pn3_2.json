@@ -1,0 +1,194 @@
+{
+  "doc": {
+    "id": "",
+    "page": "",
+    "uur": "",
+    "udd": "",
+    "text": ""
+  },
+  "nodes": [
+    {
+      "id": "n_lwv5rx1",
+      "label": "ПН",
+      "value": null,
+      "note": null,
+      "type": "root",
+      "x": 270,
+      "y": 90,
+      "w": 120,
+      "h": 40,
+      "collapsed": false
+    },
+    {
+      "id": "n_c24454c",
+      "label": "взрослые",
+      "value": null,
+      "note": null,
+      "type": "criteria",
+      "x": 61.87666320800781,
+      "y": 440.82720947265625,
+      "w": 220,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_770foib",
+      "label": "остеосинтез",
+      "value": null,
+      "note": null,
+      "type": "method",
+      "x": 306.0907287597656,
+      "y": 264.8121337890625,
+      "w": 360,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_sdfacqn",
+      "label": "И",
+      "value": null,
+      "note": null,
+      "type": "logic",
+      "x": 543.5619812011719,
+      "y": 630.4490966796875,
+      "w": 42,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_vz4q4vw",
+      "label": "ИЛИ",
+      "value": null,
+      "note": null,
+      "type": "logic",
+      "x": 310.6695556640625,
+      "y": 1005.7929077148438,
+      "w": 42,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_vdsc5vv",
+      "label": "спицы",
+      "value": null,
+      "note": null,
+      "type": "method",
+      "x": 14.217559814453125,
+      "y": 986.5444946289062,
+      "w": 360,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_i8q0m9l",
+      "label": "канюлированные винты",
+      "value": null,
+      "note": null,
+      "type": "method",
+      "x": 927.0064086914062,
+      "y": 1160.983154296875,
+      "w": 360,
+      "h": 42,
+      "collapsed": false
+    },
+    {
+      "id": "n_e8i7cnh",
+      "label": "стягивающая проволочная петля",
+      "value": null,
+      "note": null,
+      "type": "method",
+      "x": 870.1570434570312,
+      "y": 885.4904174804688,
+      "w": 360,
+      "h": 42,
+      "collapsed": false
+    }
+  ],
+  "links": [
+    {
+      "source": "n_770foib",
+      "target": "n_c24454c",
+      "predicate": "критерий пациент",
+      "label": "критерий пациент",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_lwv5rx1",
+      "target": "n_770foib",
+      "predicate": "рекомендуется",
+      "label": "рекомендуется",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_sdfacqn",
+      "target": "n_770foib",
+      "predicate": "используется",
+      "label": "используется",
+      "scope": "группа",
+      "scopeName": "группа используется"
+    },
+    {
+      "source": "n_sdfacqn",
+      "target": "n_vz4q4vw",
+      "predicate": "используется",
+      "label": "используется",
+      "scope": "подгруппа",
+      "scopeName": "подгруппа используется"
+    },
+    {
+      "source": "n_sdfacqn",
+      "target": "n_e8i7cnh",
+      "predicate": "используется",
+      "label": "используется",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_vz4q4vw",
+      "target": "n_i8q0m9l",
+      "predicate": "используется",
+      "label": "используется",
+      "scope": "",
+      "scopeName": ""
+    },
+    {
+      "source": "n_vz4q4vw",
+      "target": "n_vdsc5vv",
+      "predicate": "используется",
+      "label": "используется",
+      "scope": "",
+      "scopeName": ""
+    }
+  ],
+  "hierarchy": {
+    "rootId": "n_lwv5rx1",
+    "groups": [
+      {
+        "id": "grp_1",
+        "scope": "группа",
+        "name": "группа используется",
+        "ownerId": "n_sdfacqn",
+        "linkIds": [
+          "n_sdfacqn->n_770foib"
+        ],
+        "nodeIds": [
+          "n_770foib"
+        ]
+      },
+      {
+        "id": "grp_2",
+        "scope": "подгруппа",
+        "name": "подгруппа используется",
+        "ownerId": "n_sdfacqn",
+        "linkIds": [
+          "n_sdfacqn->n_vz4q4vw"
+        ],
+        "nodeIds": [
+          "n_vz4q4vw"
+        ]
+      }
+    ]
+  }
+}
